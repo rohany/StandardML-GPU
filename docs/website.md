@@ -1,4 +1,9 @@
-## Welcome to GitHub Pages
+## Project Proposal
+
+Functional programming very naturally describes parallel transformations of data, but doesn't yet have an efficient mechanisms
+of mapping these declarative programs onto a parallel platform like a GPU. 
+
+
 
 You can use the [editor on GitHub](https://github.com/rohany/StandardML-GPU/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
