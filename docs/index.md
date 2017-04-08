@@ -55,9 +55,9 @@ to compare our implementation with that research.
 
 | Dates | Goal | Description |
 | --- | --- | --- |
-| April 10 | ? | ? |
-| April 17 | ? | ? |
-| April 24 | ? | ? |
-| May 1 | ? | ? |
-| May 8 | ? | ? |
+| April 10 | Setup | Learn about how to setup an interface between CUDA and SML, and begin implementation of kernel launch and GPU memory transfer infrastructure |
+| April 17 | Sequences | Implement a fast serial sequence structure, and begin GPU implementations for basic types (int, float) |
+| April 24 | Fast Sequences | Optimize the sequence operations as best as possible. The primitives' performance is key to the performance of the whole interface |
+| May 1 | Optimizations | Add fusing of operations to sequence implementations |
+| May 8 | Wrapping Up | Begin writeup and presentations, and if extra time work on the extra things detailed above |
 
