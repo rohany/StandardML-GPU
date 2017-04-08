@@ -52,11 +52,12 @@ run the code on. Additionally, current research is going on in running this code
 to compare our implementation with that research. 
 
 # Schedule
-Dates | Goal | Description
---- | --- | --- 
-April 10 | ? | ?
-April 17 | ? | ? 
-April 24 | ? | ?
-May 1 | ? | ? 
-May 8 | ? | ?
+
+| Dates | Goal | Description |
+| --- | --- | --- |
+| April 10 | ? | ? |
+| April 17 | ? | ? |
+| April 24 | ? | ? |
+| May 1 | ? | ? |
+| May 8 | ? | ? |
 
