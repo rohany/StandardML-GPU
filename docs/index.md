@@ -33,6 +33,18 @@ We will be starting from scratch. We would like the course staff to install the 
 can be done with 'apt-get install mlton'.
 
 # Goals and Deliverables
+We plan to deliver an interface for running kernels on the GPU from a Standard ML interface, along with being able to provide
+abstractions from memory transfer and management to the user. Additionally, we also plan to deliver a even higher level abstraction
+of GPU primitives in the form of a thrust style sequence library where users can express thier algorithms in terms of high level
+primitives, and our implementation will allow for fast execution. Lastly, we plan to optimize this implementation to allow 
+fusing of operations to avoid the large amount of data copying that functional programs incur, and allow for users to pass around
+arbitary higher order functions for use in thier sequence operations. 
+
+If all goes well, we hope to implement some kind of polymorphism in this interface to allow for a more functional style. Additionally
+we would like to implement scripts to automate some of the interface process, and a small transpiler for simple SML functions. 
+
+At the parallelism competition, we would like to show comparisons of use between normal SML code, and SML code that can be run
+on the GPU, and speedup comparisons between the two. 
 
 # Platform Choice
 Since functional programs naturally express a very data-parallel method of computation, a GPU is a natural platform to 
@@ -40,45 +52,11 @@ run the code on. Additionally, current research is going on in running this code
 to compare our implementation with that research. 
 
 # Schedule
+Dates | Goal | Description
+--- | --- | --- 
+April 10 | ? | ?
+April 17 | ? | ? 
+April 24 | ? | ?
+May 1 | ? | ? 
+May 8 | ? | ?
 
-same
-
-
-
-
-
-You can use the [editor on GitHub](https://github.com/rohany/StandardML-GPU/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/rohany/StandardML-GPU/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
