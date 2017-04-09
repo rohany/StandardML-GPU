@@ -26,7 +26,6 @@ The challenge of this project is multifold :
 3. Implementing efficient mappings of declarative work to kernels
 4. Maintaining invariants of functional programs like immutability from the outside, but allowing for high performance
    use of the hardware.
-(* add more here lol *)
 
 # Resources
 We will be starting from scratch. We would like the course staff to install the MLton compiler on the Gates cluster machines - 
