@@ -1,7 +1,7 @@
 local
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/basis/mlton.mlb
-  ../gpuarray/gpuarray.mlb
+  ../lib/lib.mlb
 in
   test.sml
 end
