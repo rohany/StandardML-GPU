@@ -1,0 +1,9 @@
+local
+  $(SML_LIB)/basis/basis.mlb
+  $(SML_LIB)/basis/mlton.mlb
+  ../ctypes/ctypes.mlb
+	./gpuarray.sml
+in
+  structure GPUArray
+end
+

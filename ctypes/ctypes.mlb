@@ -1,0 +1,5 @@
+local 
+  ./ctypes.sml
+in
+  structure CTYPES
+end
