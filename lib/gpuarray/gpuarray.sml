@@ -11,6 +11,10 @@ struct
     _import "copy_float_gpu" public : int array * MLton.Pointer.t * int -> unit;
   val copy_float_from_gpu = 
     _import "copy_float_gpu" public : real array * MLton.Pointer.t * int -> unit;
+  val copy_int_into_gpu = 
+    _import "copy_int_into_gpu" public : int array * int -> MLton.Pointer.t;
+  val copy_float_into_gpu = 
+    _import "copy_float_into_gpu" public : real array * int -> MLton.Pointer.t;
 
 
   (* we hold the pointer to the array, the size, and the type *)
@@ -40,6 +44,22 @@ struct
       val _ = copy_float_from_gpu(hostarr, a, size)
     in
       hostarr
+    end
+  
+  (* add copy into gpu *)
+  fun fromIntArray a = 
+    let
+      val gpuarr = copy_int_into_gpu(a, length a)
+    in
+      (gpuarr, length a, CTYPES.CINT)
+    end
+  
+  (* add copy into gpu *)
+  fun fromRealArray a = 
+    let
+      val gpuarr = copy_float_into_gpu(a, length a)
+    in
+      (gpuarr, length a, CTYPES.CFLOAT)
     end
 
   (* requires that the sizes are the same *)

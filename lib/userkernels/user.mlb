@@ -1,0 +1,10 @@
+local
+  $(SML_LIB)/basis/basis.mlb
+  $(SML_LIB)/basis/mlton.mlb
+  
+  ./kernels.sml
+  ./funcptrs.sml
+in
+  structure GPUKernels
+  structure GPULambdas
+end

@@ -17,6 +17,26 @@ void* allocate_on_gpu(size_t size, int smltype){
 }
 
 extern "C"
+void* copy_float_into_gpu(Pointer src, int size){
+	
+	void* ret_ptr;
+	cudaMalloc(&ret_ptr, sizeof(float) * size);
+  cudaMemcpy(ret_ptr, src, sizeof(float) * size, cudaMemcpyHostToDevice);
+  
+  return ret_ptr;
+}
+
+extern "C"
+void* copy_int_into_gpu(Pointer src, int size){
+	
+	void* ret_ptr;
+	cudaMalloc(&ret_ptr, sizeof(int) * size);
+  cudaMemcpy(ret_ptr, src, sizeof(int) * size, cudaMemcpyHostToDevice);
+  
+  return ret_ptr;
+}
+
+extern "C"
 void copy_float_gpu(Pointer dest, void* gpuarr, size_t size){
 	size_t typesize = sizeof(float);
   cudaMemcpy(dest, gpuarr, size * typesize, cudaMemcpyDeviceToHost);

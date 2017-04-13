@@ -1,7 +1,7 @@
-local
+local 
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/basis/mlton.mlb
-  ../lib/lib.mlb
+  ./timer.sml
 in
-  test.sml
+  structure Timer
 end
