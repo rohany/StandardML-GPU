@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <time.h>
 #include "export.h"
 
 __global__

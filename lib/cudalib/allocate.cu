@@ -1,6 +1,11 @@
 #include "export.h"
 
 extern "C"
+void init_gpu(){
+  cudaDeviceSynchronize();
+}
+
+extern "C"
 void* allocate_on_gpu(size_t size, int smltype){
 	size_t typesize;
 	if(smltype == 0){

@@ -5,6 +5,7 @@ struct
   open Array
   
   (* cimport functions - these can be found in allocate.cu *)
+  val init_gpu = _import "init_gpu" public : unit -> unit;
   val gpu_alloc = _import "allocate_on_gpu" public : int * int -> MLton.Pointer.t;
   val gpu_free = _import "free_gpu_ptr" public : MLton.Pointer.t -> unit;
   val copy_int_from_gpu = 
@@ -19,6 +20,8 @@ struct
 
   (* we hold the pointer to the array, the size, and the type *)
   type 'a gpuarray = MLton.Pointer.t * int * int
+
+  fun INITCUDA () = init_gpu()
   
   (* initializes an array on the GPU and sets it to zero *)
   fun init size ctype = 
