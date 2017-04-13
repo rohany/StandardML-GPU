@@ -12,7 +12,6 @@ void* allocate_on_gpu(size_t size, int smltype){
 
 	void* ret_ptr;
 	cudaMalloc(&ret_ptr, typesize * size);
-	cudaMemset(ret_ptr, 0, typesize * size);
 	return ret_ptr;
 }
 
