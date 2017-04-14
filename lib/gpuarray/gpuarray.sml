@@ -80,3 +80,5 @@ struct
   fun getCtype (_, _, a) = a
    
 end
+
+val _ = GPUArray.INITCUDA()

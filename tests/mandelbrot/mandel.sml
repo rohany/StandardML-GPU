@@ -23,7 +23,7 @@ struct
       val (x0, x1, y0, y1) = (~2.0, 1.0, ~1.0, 1.0)
       val (width, height) = (1200.0, 800.0)
       val (dx, dy) = ((x1 - x0) / width, (y1 - y0) / height)
-      val maxIter = 100000
+      val maxIter = 256
       fun loop i = 
         let
           val x = x0 + Real.fromInt(i mod Real.floor width)
@@ -44,14 +44,14 @@ struct
       val (x0, x1, y0, y1) = (~2.0, 1.0, ~1.0, 1.0)
       val (width, height) = (1200.0, 800.0)
       val (dx, dy) = ((x1 - x0) / width, (y1 - y0) / height)
-      val maxIter = 100000
+      val maxIter = 256
       val gpuarr = 
         GPUArray.init (Real.floor width * Real.floor height) (CTYPES.CFLOAT)
       val _ = GPUKernels.mandel_gpu
               (GPUArray.getDevicePtr gpuarr, maxIter, Real.floor width, 
                Real.floor height, dx, dy, x0, y0)
     in
-      GPUArray.toRealArray gpuarr
+      ()(*GPUArray.toRealArray gpuarr*)
     end
 
 end
@@ -61,7 +61,6 @@ struct
   fun run () = 
     let
       val (res, time) = Timer.run CPUMandel.runMandel
-      val b = Array.sub(res, 0)
       val _ = print("SML time " ^ time ^ "\n")
       val (res, time) = Timer.run GPUMandel.runMandel
       val _ = print("SMLGPU time " ^ time ^ "\n")
@@ -69,5 +68,5 @@ struct
       ()
     end
 end
-val _ = GPUArray.INITCUDA()
+
 val _ = Main.run()
