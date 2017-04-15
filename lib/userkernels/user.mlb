@@ -6,5 +6,6 @@ local
   ./funcptrs.sml
 in
   structure GPUKernels
-  structure GPULambdas
+  structure GPUINTLambdas
+  structure GPUFLOATLambdas
 end

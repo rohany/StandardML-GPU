@@ -31,6 +31,8 @@ struct
       (gpuptr, size, ctype)
     end
 
+  (* TODO add a init with argument to init as - can do in sequence as well *)
+
   fun destroy (a, _, _) = gpu_free a 
 
   fun toIntArray (a, size, ctype) = 

@@ -25,4 +25,12 @@ struct
       (a', n, CTYPES.CINT)
     end
 
+  val reduce = ()
+
+  val scan = ()
+
+  val filter = ()
+
+  val zip = ()
+
 end

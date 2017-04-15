@@ -1,9 +1,5 @@
 #include "export.h"
-
-typedef int (*tabulate_fun_int)(int x);
-
-typedef int (*map_fun_int)(int x);
-
+#include "hofs.h"
 
 __global__ 
 void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
