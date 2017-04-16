@@ -50,8 +50,13 @@ void copy_float_gpu(Pointer dest, void* gpuarr, size_t size){
 extern "C"
 void copy_int_gpu(Pointer dest, void* gpuarr, size_t size){
 	size_t typesize = sizeof(int);
-  cudaMemcpy(dest, gpuarr, size * typesize, cudaMemcpyDeviceToHost);
-  printf("finished transfer\n");
+  int* ptr = (int*)dest;    
+  cudaMemcpy(ptr, gpuarr, size * typesize, cudaMemcpyDeviceToHost);
+
+  for(int i = 1000;i < 1010;i++){
+    printf("%d, ", ptr[i]);
+  }
+  printf("\n");
 }
 
 extern "C"
@@ -68,12 +73,13 @@ void initwith_int(int* arr, int b, int len){
   }
 }
 extern "C"
-void initInt_gpu(int size, int b){
+void* initInt_gpu(int size, int b){
   void* dev_ptr;
   cudaMalloc(&dev_ptr, sizeof(int) * size);
 
   int blocks = (size / 256) + 1;
   initwith_int<<<blocks, 256>>>((int*)dev_ptr, b, size);
+  return dev_ptr;
 }
 
 __global__
@@ -85,12 +91,14 @@ void initwith_float(float* arr, float b, int len){
   }
 }
 extern "C"
-void initFloat_gpu(int size, float b){
+void* initFloat_gpu(int size, float b){
   void* dev_ptr;
   cudaMalloc(&dev_ptr, sizeof(float) * size);
 
   int blocks = (size / 256) + 1;
   initwith_float<<<blocks, 256>>>((float*)dev_ptr, b, size);
+  cudaDeviceSynchronize();
+  return dev_ptr;
 }
 
 extern "C"
