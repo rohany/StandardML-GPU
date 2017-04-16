@@ -11,5 +11,6 @@ end
 
 structure GPUFLOATLambdas = 
 struct
+  open Real
   val () = ()
 end

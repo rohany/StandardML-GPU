@@ -1,5 +1,5 @@
-#include "export.h"
-#include "hofs.h"
+#include "../headers/export.h"
+#include "../headers/hofs.h"
 
 __global__ 
 void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){

@@ -3,6 +3,7 @@ struct
   
   exception Range
   open Array
+  open Real
   
   (* cimport functions - these can be found in allocate.cu *)
   val init_gpu = _import "init_gpu" public : unit -> unit;

@@ -1,5 +1,5 @@
-#include "export.h"
-#include "hofs.h"
+#include "../headers/export.h"
+#include "../headers/hofs.h"
 
 // basic builtin hofs, can extend this later
 

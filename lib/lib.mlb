@@ -1,3 +1,4 @@
+defs.mlb
 ctypes/ctypes.mlb
 gpuarray/gpuarray.mlb
 timer/timer.mlb

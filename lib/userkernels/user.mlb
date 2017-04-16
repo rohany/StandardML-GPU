@@ -1,7 +1,7 @@
 local
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/basis/mlton.mlb
-  
+  ../defs.mlb 
   ./kernels.sml
   ./funcptrs.sml
 in

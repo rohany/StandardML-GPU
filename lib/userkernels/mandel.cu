@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <time.h>
-#include "export.h"
+#include "../headers/export.h"
 
 __global__
 void mandel(int* out, int count, int width, int height, 
-            Real64 dx, Real64 dy, Real64 x0, Real64 y0){
+            float dx, float dy, float x0, float y0){
 
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -34,11 +34,9 @@ void mandel(int* out, int count, int width, int height,
 
 extern "C"
 void mandel_gpu(void* out, int count, int width, int height,
-                Real64 dx, Real64 dy, Real64 x0, Real64 y0){
+                float dx, float dy, float x0, float y0){
   int blocks = ((width * height) / 256) + 1;
   int threads = 256;
   mandel<<<blocks, threads>>>((int*)out, count, width, height, dx, dy, x0, y0);
-  printf("height %d width %d\n", height, width);
-  printf("dx %f dy %f\n", dx, dy);
   cudaDeviceSynchronize();
 }

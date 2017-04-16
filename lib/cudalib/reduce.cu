@@ -1,8 +1,6 @@
-#include <cuda.h>
-#include "hofs.h"
-#include "export.h"
+#include "../headers/hofs.h"
+#include "../headers/export.h"
 
-/*
 __inline__ __device__
 int warp_red_int(int b, reduce_fun_int f){
   int res = b;
@@ -12,11 +10,10 @@ int warp_red_int(int b, reduce_fun_int f){
   }
   return res;
 }
-*/
 
 extern "C"
 int reduce_int(void* arr, int size, int b, void* f){
-  reduce_fun_int hof = (reduce_fun_int)f;
-
+  //reduce_fun_int hof = (reduce_fun_int)f;
+  
   return 0;
 }

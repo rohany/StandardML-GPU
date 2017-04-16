@@ -1,4 +1,4 @@
-#include "export.h"
+#include "../headers/export.h"
 #include <stdio.h>
 
 extern "C"
@@ -52,11 +52,6 @@ void copy_int_gpu(Pointer dest, void* gpuarr, size_t size){
 	size_t typesize = sizeof(int);
   int* ptr = (int*)dest;    
   cudaMemcpy(ptr, gpuarr, size * typesize, cudaMemcpyDeviceToHost);
-
-  for(int i = 1000;i < 1010;i++){
-    printf("%d, ", ptr[i]);
-  }
-  printf("\n");
 }
 
 extern "C"
@@ -91,9 +86,9 @@ void initwith_float(float* arr, float b, int len){
   }
 }
 extern "C"
-void* initFloat_gpu(int size, float b){
+void* initFloat_gpu(int size, Real64 b){
   void* dev_ptr;
-  cudaMalloc(&dev_ptr, sizeof(float) * size);
+  cudaMalloc(&dev_ptr, sizeof(Real64) * size);
 
   int blocks = (size / 256) + 1;
   initwith_float<<<blocks, 256>>>((float*)dev_ptr, b, size);
@@ -108,7 +103,7 @@ void* copy(void* in, int size, int smltype){
 		typesize = sizeof(int);
 	}
 	else{
-		typesize = sizeof(float);
+		typesize = sizeof(Real64);
 	}
 
 	void* ret_ptr;

@@ -1,4 +1,5 @@
-local 
+local
+  ../defs.mlb 
   ./ctypes.sml
 in
   structure CTYPES
