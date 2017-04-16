@@ -9,13 +9,19 @@ struct
   val gpu_alloc = _import "allocate_on_gpu" public : int * int -> MLton.Pointer.t;
   val gpu_free = _import "free_gpu_ptr" public : MLton.Pointer.t -> unit;
   val copy_int_from_gpu = 
-    _import "copy_float_gpu" public : int array * MLton.Pointer.t * int -> unit;
+    _import "copy_int_gpu" public : int array * MLton.Pointer.t * int -> unit;
   val copy_float_from_gpu = 
     _import "copy_float_gpu" public : real array * MLton.Pointer.t * int -> unit;
   val copy_int_into_gpu = 
     _import "copy_int_into_gpu" public : int array * int -> MLton.Pointer.t;
   val copy_float_into_gpu = 
     _import "copy_float_into_gpu" public : real array * int -> MLton.Pointer.t;
+  val initwith_int = 
+    _import "initInt_gpu" public : int * int -> MLton.Pointer.t;
+  val initwith_float = 
+    _import "initFloat_gpu" public : int * real -> MLton.Pointer.t;
+  val copy_gpu = 
+    _import "copy" public : MLton.Pointer.t * int * int -> MLton.Pointer.t;
 
 
   (* we hold the pointer to the array, the size, and the type *)
@@ -33,8 +39,25 @@ struct
 
   (* TODO add a init with argument to init as - can do in sequence as well *)
 
+  fun initInt size b = 
+    let
+      val ptr = initwith_int(size, b)
+    in
+      (ptr, size, CTYPES.CINT)
+    end
+  
+  fun initFloat size b = 
+    let
+      val ptr = initwith_float(size, b)
+    in
+      (ptr, size, CTYPES.CFLOAT)
+    end
+
   fun destroy (a, _, _) = gpu_free a 
 
+  fun copy (a, n, c) = (copy_gpu(a,n,c), n, c)
+
+  (* is there a bug here? *)
   fun toIntArray (a, size, ctype) = 
     let
       val hostarr = array(size, 0)

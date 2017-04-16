@@ -33,7 +33,8 @@ void mandel(int* out, int count, int width, int height,
 extern "C"
 void mandel_gpu(void* out, int count, int width, int height,
                 float dx, float dy, float x0, float y0){
-  int blocks = ((width * height) % 256) + 1;
+  int blocks = ((width * height) / 256) + 1;
   int threads = 256;
   mandel<<<blocks, threads>>>((int*)out, count, width, height, dx, dy, x0, y0);
+  cudaDeviceSynchronize();
 }

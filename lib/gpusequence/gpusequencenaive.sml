@@ -25,6 +25,12 @@ struct
       (a', n, CTYPES.CINT)
     end
 
+  val makeCopy = copy 
+
+  val length = getSize
+
+  fun toArraySequence s = ArraySlice.full(toIntArray s)
+
   val reduce = ()
 
   val scan = ()
