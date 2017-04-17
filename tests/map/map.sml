@@ -3,7 +3,7 @@ val SOME(size) = Int.fromString x
 structure Seq = ArraySequence
 structure GPUSeq = INTGPUSequenceNaive
 val a1 = Seq.tabulate(fn i => i) size
-val (a1, str1) = Timer.run (fn () => Seq.map (fn i => 1) a1)
+val (a1, str1) = Timer.run (fn () => Seq.map (fn i => 2) a1)
 val _ = print("SML : " ^ str1 ^ "\n")
 val a2 = GPUArray.initInt size 1
 val (res2, str2) = Timer.run (fn () => GPUSeq.map GPUINTLambdas.double a2)

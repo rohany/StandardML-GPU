@@ -43,6 +43,23 @@ struct
     in
       (a, r)
     end
+  
+  fun scanIncl f b s = 
+    let
+      val a = AS.full(A.array(length s, b))
+      fun loop i acc = 
+        if i = length s then acc else
+        let
+          val x = nth s i
+          val res = f(acc, x)
+          val _ = AS.update(a, i, res)
+        in
+          loop (i+1) res
+        end
+      val r = loop 0 b
+    in
+      a
+    end
 
 
 end

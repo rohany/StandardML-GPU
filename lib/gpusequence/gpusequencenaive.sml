@@ -12,6 +12,8 @@ struct
   val reduce_cuda = 
     _import "reduce_int_shfl" public : MLton.Pointer.t * int * int * MLton.Pointer.t -> int;
 
+  fun all b n = initInt n b
+
   fun tabulate f n ctype = 
     let
       val a = tabulate_cuda (n, f)
@@ -33,8 +35,6 @@ struct
 
   fun toArraySequence s = ArraySlice.full(toIntArray s)
 
-  (* this is a destructive reduce opperation *)
-  (* this one isnt *)
   fun reduce f b (a, n, _) = reduce_cuda(a, n, b, f)
 
   val scan = ()
