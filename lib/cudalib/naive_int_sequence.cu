@@ -1,5 +1,9 @@
 #include "../headers/export.h"
 #include "../headers/hofs.h"
+#include "../funcptrs/builtin_tabulate_and_map_int.h"
+#include "../funcptrs/user_tabulate_int.h"
+#include "../funcptrs/builtin_map_int.h"
+#include "../funcptrs/user_map_int.h"
 
 #define blockSize = 256
 
@@ -12,7 +16,7 @@ void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
     return;
   }
 
-  arr[idx] = (*f)(idx);
+  arr[idx] = f(idx);
 
 }
 
@@ -39,7 +43,7 @@ void map_int_kernel(int* arr, int len, map_fun_int f){
     return;
   }
 
-  arr[idx] = (*f)(arr[idx]);
+  arr[idx] = f(arr[idx]);
 
 }
 

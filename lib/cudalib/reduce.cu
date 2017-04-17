@@ -1,19 +1,22 @@
 #include "../headers/hofs.h"
 #include "../headers/export.h"
+#include "../funcptrs/builtin_reduce_int.h"
+#include "../funcptrs/user_reduce_int.h"
 #include <stdio.h>
 
-#define threads_reduce 256
+#define threads_reduce 1024
 #define block_red_size_reduce (threads_reduce / 32)
 
 __inline__ __device__
 int warp_red_int(int t, reduce_fun_int f){
   int res = t;
-  for(int i = warpSize / 2;i >= 1;i /= 2){
+  for(int i = warpSize / 2;i > 0;i /= 2){
     int a = __shfl_down(res, i);
-    res = (*f)(res, a);
+    res = f(res, a);
   }
   return res;
 }
+
 
 __inline__ __device__
 int reduce_block_int(int t, int b, reduce_fun_int f){
@@ -37,7 +40,7 @@ int reduce_block_int(int t, int b, reduce_fun_int f){
 
   __syncthreads();
   
-  int broadval2 = (localIdx < block_red_size_reduce) ? warp_reds[localIdx] : b;
+  int broadval2 = (threadIdx.x < block_red_size_reduce) ? warp_reds[localIdx] : b;
   int res = b;
   if(warpIdx == 0){
     res = warp_red_int(broadval2, f);
@@ -50,28 +53,18 @@ __global__
 void reduce_int_kernel(int* in, int* out, int size, int b, reduce_fun_int f){
 
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if(idx == 0){
-    printf("got here\n");
-  }
   int sum = b;
 
   for(int i = idx;i < size;i += blockDim.x * gridDim.x){
-    sum = (*f)(b,sum);
+    sum = f(sum,in[i]);
   }
   
-  //sum = reduce_block_int(sum, b, f);
-  /*
+  sum = reduce_block_int(sum, b, f);
+  
   if(threadIdx.x == 0){
-    while(true){
-      int t = *out;
-      int final = (*f)(sum, t);
-      int res = atomicCAS(out, t, final);
-      if(res != t){
-        break;
-      }
-    }
+    out[blockIdx.x] = sum;
   }
-  */
+  
 }
 
 
@@ -79,19 +72,22 @@ extern "C"
 int reduce_int_shfl(void* arr, int size, int b, void* f){
   reduce_fun_int hof = (reduce_fun_int)f;
   
-  void* res;
-  cudaMalloc(&res, sizeof(int));
 
-  int numBlocks = (size / threads_reduce) + 1;
+  int numBlocks = (size / threads_reduce) + 1;//, 1024);
+  void* res;
+  cudaMalloc(&res, sizeof(int) * numBlocks);
   reduce_int_kernel<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
                                                    size, b, hof);
+  reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
 
+  /*
   cudaDeviceSynchronize();
   cudaError_t wei = cudaGetLastError();
   printf("%s\n", cudaGetErrorString(wei));
+  */
 
   int ret;
   cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
-  printf("%d\n", ret);
+  cudaFree(res);
   return ret;
 }

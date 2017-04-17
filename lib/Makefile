@@ -2,7 +2,7 @@ NVFLAGS = -arch=compute_61 -code=sm_61
 OUTDIR = objs
 
 GOBJS = $(OUTDIR)/allocate.o $(OUTDIR)/sequence.o $(OUTDIR)/reduce.o \
-				$(OUTDIR)/mandel.o $(OUTDIR)/kernels.o
+				$(OUTDIR)/mandel.o 
 
 
 gpublob.o : $(OUTDIR) $(GOBJS)
@@ -17,8 +17,6 @@ $(OUTDIR)/reduce.o : cudalib/reduce.cu
 	nvcc -c -o $(OUTDIR)/reduce.o cudalib/reduce.cu $(NVFLAGS)
 $(OUTDIR)/mandel.o : userkernels/mandel.cu
 	nvcc -c -o $(OUTDIR)/mandel.o userkernels/mandel.cu $(NVFLAGS)
-$(OUTDIR)/kernels.o : userkernels/built_in_kernels.cu
-	nvcc -c -o $(OUTDIR)/kernels.o userkernels/built_in_kernels.cu $(NVFLAGS)
 
 clean : 
 	(rm *.o;rm -rf objs)
