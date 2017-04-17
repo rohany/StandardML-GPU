@@ -31,7 +31,13 @@ struct
 
   fun toArraySequence s = ArraySlice.full(toIntArray s)
 
-  val reduce = ()
+  (* this is a destructive recuce opperation *)
+  val reduce f (a, n, _) = 
+    let
+      val result = reduce_cuda(a, f, n)
+    in
+      (result, n, CTYPES.CINT)
+    end
 
   val scan = ()
 
