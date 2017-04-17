@@ -1,3 +1,2 @@
 $(SML_LIB)/basis/basis.mlb
 structure Real = Real32
-open Real

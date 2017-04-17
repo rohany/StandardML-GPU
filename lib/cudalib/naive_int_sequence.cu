@@ -53,19 +53,19 @@ void* map_int(void* inarr, void* f, int size){
   return inarr;
 
 }
-
+/*
 //Reduce - cite http://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf
 __global__
-void reduce_int_kernel(int* arr, int len, map_fun_int f){
+void reduce_int_kernel(int* arr, int len, reduce_fun_int f){
   
   extern __shared__ int sdata[];
-
+  unsigned int blockSize = blockDim.x;
   unsigned int thread_id = threadIdx.x;
-  unsigned int array_id = blockIdx.x * (blockSize * 2) + thread_id;
-  unsigned int gridSize = 2 * blockSize * gridDim.x;
+  unsigned int array_id = blockIdx.x * (blockDim.x * 2) + thread_id;
+  unsigned int gridSize = 2 * blockDim.x * gridDim.x;
   sdata[thread_id] = 0;
 
-  while (array_id< len) 
+  while (array_id < len) 
   {
     sdata[thread_id] += arr[i] + arr[array_id+ blockSize];
     array_id += blockSize;
@@ -107,3 +107,4 @@ void* reduce_int(void* inarr, void* f, int size){
   return inarr;
 
 }
+*/

@@ -9,6 +9,8 @@ struct
     _import "tabulate_int" public : int * MLton.Pointer.t -> MLton.Pointer.t;
   val map_cuda = 
     _import "map_int" public : MLton.Pointer.t * MLton.Pointer.t * int -> MLton.Pointer.t;
+  val reduce_cuda = 
+    _import "reduce_int_shfl" public : MLton.Pointer.t * int * int * MLton.Pointer.t -> int;
 
   fun tabulate f n ctype = 
     let
@@ -31,13 +33,9 @@ struct
 
   fun toArraySequence s = ArraySlice.full(toIntArray s)
 
-  (* this is a destructive recuce opperation *)
-  val reduce f (a, n, _) = 
-    let
-      val result = reduce_cuda(a, f, n)
-    in
-      (result, n, CTYPES.CINT)
-    end
+  (* this is a destructive reduce opperation *)
+  (* this one isnt *)
+  fun reduce f b (a, n, _) = reduce_cuda(a, n, b, f)
 
   val scan = ()
 
