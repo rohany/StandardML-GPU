@@ -1,4 +1,5 @@
-val size = 100000000
+val [x] = CommandLine.arguments()
+val SOME(size) = Int.fromString x
 structure Seq = ArraySequence
 val a1 = Seq.tabulate(fn i => 1) size
 val (res1, str1) = Timer.run (fn () => Seq.reduce (op +) 0 a1)

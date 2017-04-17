@@ -19,7 +19,7 @@ void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
   arr[idx] = f(idx);
 
 }
-
+extern "C"
 void* tabulate_int(void* f, int size){
   
   tabulate_fun_int hof = (tabulate_fun_int)f;
@@ -46,7 +46,7 @@ void map_int_kernel(int* arr, int len, map_fun_int f){
   arr[idx] = f(arr[idx]);
 
 }
-
+extern "C"
 void* map_int(void* inarr, void* f, int size){
   
   map_fun_int hof = (map_fun_int)f;      
