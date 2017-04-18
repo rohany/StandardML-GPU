@@ -1,3 +1,5 @@
+permalink : /checkpoint.md
+
 ## Project Proposal
 
 # Summary
