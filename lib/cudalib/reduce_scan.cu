@@ -166,7 +166,7 @@ void scan_int_kernel(int* in, int* block_results, scan_fun_int f, int b, int len
   }
 }
 __global__
-void compress_results(int* block_res, int* out, int len, scan_fun_int f, int b){
+void compress_results(int* block_res, int* out, int len, scan_fun_int f){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
   if(blockIdx.x == 0){
@@ -176,6 +176,17 @@ void compress_results(int* block_res, int* out, int len, scan_fun_int f, int b){
     if(idx < len){
       out[idx] = f(block_res[blockIdx.x - 1], out[idx]);
     }
+  }
+}
+
+//this is terrible
+__global__
+void serial_scan(int* bres, int len, int b, scan_fun_int f){
+  int res = b;
+  #pragma unroll
+  for(int i = 0;i < len;i++){
+    res = f(res, bres[i]);
+    bres[i] = res;
   }
 }
 
@@ -196,11 +207,13 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
           ((int*)in, block_results, hof, b, length);
 
   if(num_blocks_first == 1){
+    cudaDeviceSynchronize();
     return in;
   }
   else if(num_blocks_first <= 1024){
     scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
-    compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof, b);
+    compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
+    cudaDeviceSynchronize();
     return in;
   }
   else{
@@ -209,11 +222,11 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
     cudaMalloc(&block_block_results, sizeof(int) * leftover);
     scan_int_kernel<<<leftover, threads_scan>>>
             (block_results, block_block_results, hof, b, num_blocks_first);
-
-    //in a kernel, scan over these, and then compress?
-
-    
+    serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
+    compress_results<<<leftover, threads_scan>>>
+            (block_block_results, block_results, num_blocks_first, hof);
+    compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
+    cudaDeviceSynchronize();
     return in;
   }
-
 }
