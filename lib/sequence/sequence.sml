@@ -16,6 +16,8 @@ struct
   
   fun tabulate f n = AS.full(A.tabulate(n, f))
 
+  fun fromArray s = AS.full s
+
   fun nth s i = AS.sub(s, i)
 
   fun length s = AS.length s
