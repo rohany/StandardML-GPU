@@ -1,4 +1,4 @@
-permalink : /checkpoint.md
+[Checkpoint Writeup](checkpoint.md)
 
 ## Project Proposal
 
