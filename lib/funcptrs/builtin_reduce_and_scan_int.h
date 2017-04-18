@@ -1,6 +1,6 @@
 #include "../headers/hofs.h"
 
-__device__
+__device__ __inline__
 int add_int(int x, int y){
   return x+y;
 }
