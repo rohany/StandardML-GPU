@@ -1,12 +1,15 @@
 #include "../headers/hofs.h"
 #include "../headers/export.h"
-#include "../funcptrs/builtin_reduce_int.h"
+#include "../funcptrs/builtin_reduce_and_scan_int.h"
 #include "../funcptrs/user_reduce_int.h"
 #include <stdio.h>
 #include <time.h>
 
 #define threads_reduce 1024
 #define block_red_size_reduce (threads_reduce / 32)
+
+#define threads_scan 1024
+#define block_red_size_scan (threads_scan / 32)
 
 __inline__ __device__
 int warp_red_int(int t, reduce_fun_int f){
@@ -86,4 +89,71 @@ int reduce_int_shfl(void* arr, int size, int b, void* f){
   cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
   cudaFree(res);
   return ret;
+}
+
+__device__ __inline__
+int warp_scan_shfl(int b, scan_fun_int f, int* out, int idx, int length){
+  int res;
+  if(idx < length){
+    res = out[idx];
+  }
+  else{
+    res = b;
+  }
+
+  for(int i = 1;i < warpSize;i *= 2){
+    int a = __shfl_up(res, i);
+    res = f(a, res);
+  }
+  if(idx < length){
+    out[idx] = res;
+  }
+  return res;
+}
+
+__device__ __inline__
+int block_scan(int* in, int length, scan_fun_int f, int b){
+
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+  __shared__ int warp_reds[block_red_size_scan];
+
+  int warpIdx = threadIdx.x / warpSize;
+
+  int localIdx= threadIdx.x % warpSize;
+
+  int inter_res = warp_scan_shfl(b, f, in, idx, length);
+
+  if(localIdx == warpSize - 1){
+    warp_reds[warpIdx] = inter_res;
+  }
+
+  __syncthreads();
+
+  int res = b;
+  if(warpIdx == 0){
+    res = warp_scan_shfl(b, f, warp_reds, localIdx, block_red_size_scan);
+  }
+  
+  __syncthreads();
+
+  if(idx < length && warpIdx != 0){
+    in[idx] = f(warp_reds[warpIdx - 1], in[idx]);
+  }
+
+  //warp number 0, lane number block_red_size_scan 
+  //will return the final result for scanning over this
+  //block 
+  return res;
+}
+
+//inclusive kernel
+__global__
+void scan_int_kernel(int* in, int* block_results, scan_fun_int f, int b, int length){
+  
+  int block_res = block_scan(in, length, f, b);
+  if(threadIdx.x == block_red_size_scan - 1){
+    block_results[blockIdx.x] = block_res;
+  }
+
 }
