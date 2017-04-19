@@ -14,6 +14,6 @@ int main(int argc, char** argv){
   thrust::inclusive_scan(test.begin(), test.end(), test.begin(), thrust::plus<int>());
   auto end = std::chrono::high_resolution_clock::now();
     
-  std::cout << (std::chrono::duration_cast<std::chrono::milliseconds>(end - started).count()) / 1000.0 << std::endl;
+  printf("Thrust time %.4f\n", (std::chrono::duration_cast<std::chrono::milliseconds>(end - started).count()) / 1000.0);
   return 0;
 }

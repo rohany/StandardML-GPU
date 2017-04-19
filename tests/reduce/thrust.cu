@@ -1,6 +1,8 @@
 #include <thrust/device_vector.h>
 #include <stdio.h>
+#include <iostream>
 #include <time.h>
+#include <chrono>
 
 int main(int argc, char** argv){
   int size = atoi(argv[1]);
@@ -8,9 +10,10 @@ int main(int argc, char** argv){
   thrust::device_vector<int> test(size);
   thrust::fill(test.begin(), test.end(), 1);
   
-  clock_t begin = clock();
-  int sum = thrust::reduce(test.begin(), test.end(), 0, thrust::plus<int>());
-  clock_t end = clock();
-  printf("time spent : %.4f\n", (double) (end - begin) / CLOCKS_PER_SEC);
+  auto started = std::chrono::high_resolution_clock::now();
+  int x = thrust::reduce(test.begin(), test.end(), 0, thrust::plus<int>());
+  auto end = std::chrono::high_resolution_clock::now();
+    
+  printf("Thrust time %.4f\n", (std::chrono::duration_cast<std::chrono::milliseconds>(end - started).count()) / 1000.0);
   return 0;
 }
