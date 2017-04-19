@@ -190,8 +190,6 @@ void serial_scan(int* bres, int len, int b, scan_fun_int f){
   }
 }
 
-
-
 extern "C"
 void* inclusive_scan_int(void* in, void* f, int length, int b){
   
@@ -208,12 +206,16 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
 
   if(num_blocks_first == 1){
     cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
     return in;
   }
   else if(num_blocks_first <= 1024){
     scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
     compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
     cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
     return in;
   }
   else{
@@ -227,6 +229,171 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
             (block_block_results, block_results, num_blocks_first, hof);
     compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
     cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
+    cudaFree(block_block_results);
     return in;
+  }
+}
+
+//BEGIN EXCLUSIVE SCAN
+
+__device__ __inline__
+int warp_scan_shfl_exl(int b, scan_fun_int f, int* out, int idx, int length){
+  int warpIdx = threadIdx.x % warpSize;
+  int res;
+  if(warpIdx == 0){
+    res = b;
+  }
+  else{
+    if(idx - 1 > length){
+      res = b;
+    }
+    else{
+      res = out[idx - 1];
+    }
+  }
+  #pragma unroll
+  for(int i = 1;i < warpSize;i *= 2){
+    int a = __shfl_up(res, i);
+    if(i <= warpIdx){
+      res = f(a, res);
+    }
+  }
+  if(idx < length){
+    out[idx] = res;
+  }
+  return res;
+}
+
+__device__ __inline__
+int excl_block_scan(int* in, int length, scan_fun_int f, int b){
+
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+  __shared__ int warp_reds[block_red_size_scan];
+
+  int warpIdx = threadIdx.x / warpSize;
+
+  int localIdx= threadIdx.x % warpSize;
+
+  int inter_res = warp_scan_shfl(b, f, in, idx, length);
+
+  if(localIdx == warpSize - 1){
+    warp_reds[warpIdx] = inter_res;
+  }
+
+  __syncthreads();
+
+  int res = b;
+  if(warpIdx == 0){
+    res = warp_scan_shfl(b, f, warp_reds, localIdx, block_red_size_scan);
+  }
+  
+  __syncthreads();
+
+  if(idx < length && warpIdx != 0){
+    in[idx] = f(warp_reds[warpIdx - 1], in[idx]);
+  }
+
+  //warp number 0, lane number block_red_size_scan 
+  //will return the final result for scanning over this
+  //block
+  return res;
+}
+
+//inclusive kernel
+__global__
+void excl_scan_int_kernel(int* in, int* block_results, scan_fun_int f, int b, int length, int* out){
+  
+  int block_res = block_scan(in, length, f, b);
+  if(threadIdx.x == block_red_size_scan - 1){
+    block_results[blockIdx.x] = block_res;
+    *out = block_res;
+  }
+}
+__global__
+void excl_compress_results(int* block_res, int* out, int len, scan_fun_int f, int* final, int b){
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if(idx >= len) return;
+  if(blockIdx.x != 0){
+    out[idx] = f(block_res[blockIdx.x - 1], out[idx]);
+  }
+  __syncthreads();
+  int toWrite = b;
+  if(threadIdx.x == 0){
+    if(idx == 0){
+      toWrite = b;
+    }
+    else{
+      toWrite = block_res[blockIdx.x - 1];
+    }
+  }
+  else{
+    toWrite = out[idx - 1];
+  }
+  if(idx == len - 1){
+    *final = out[idx];
+  }
+  __syncthreads();
+  out[idx] = toWrite;
+}
+
+extern "C"
+int exclusive_scan_int(void* in, void* f, int length, int b){
+  
+  scan_fun_int hof = (scan_fun_int)f;
+
+  int num_blocks_first = (length / threads_scan) + 1;
+  int* block_results;
+  int* dummy;
+  int* final_val;
+  cudaMalloc(&block_results, sizeof(int) * num_blocks_first);
+  cudaMalloc(&dummy, sizeof(int));
+  cudaMalloc(&final_val, sizeof(int));
+
+
+  scan_int_kernel<<<num_blocks_first, threads_scan>>>
+          ((int*)in, block_results, hof, b, length);
+  int res;
+  if(num_blocks_first == 1){
+    excl_compress_results<<<num_blocks_first, threads_scan>>>
+          (block_results, (int*)in, length, hof, final_val, b);
+    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
+    cudaFree(final_val);
+    return res;
+  }
+  else if(num_blocks_first <= 1024){
+    scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
+    excl_compress_results<<<num_blocks_first, threads_scan>>>
+            (block_results, (int*)in, length, hof, final_val, b);
+    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
+    cudaFree(final_val);
+    return res;
+  }
+  else{
+    int leftover = (num_blocks_first / threads_scan) + 1;
+    int* block_block_results;
+    cudaMalloc(&block_block_results, sizeof(int) * leftover);
+    scan_int_kernel<<<leftover, threads_scan>>>
+            (block_results, block_block_results, hof, b, num_blocks_first);
+    serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
+    compress_results<<<leftover, threads_scan>>>
+            (block_block_results, block_results, num_blocks_first, hof);
+    excl_compress_results<<<num_blocks_first, threads_scan>>>
+            (block_results, (int*)in, length, hof, final_val, b);
+    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    cudaFree(block_results);
+    cudaFree(dummy);
+    cudaFree(final_val);
+    cudaFree(block_block_results);
+    return res;
   }
 }
