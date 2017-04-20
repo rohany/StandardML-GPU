@@ -1,4 +1,4 @@
-NVFLAGS = -arch=compute_61 -code=sm_61
+NVFLAGS = -arch=compute_61 -code=sm_61 -O3
 OUTDIR = objs
 
 GOBJS = $(OUTDIR)/allocate.o $(OUTDIR)/sequence.o $(OUTDIR)/reduce_scan.o \
