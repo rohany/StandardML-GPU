@@ -8,10 +8,44 @@ So far, we have completed a large amount of the structure and framework for the 
 * A fast serial Sequence implementation to benchmark against. 
 * Testing frameworks to assure the interface between SML and CUDA (memory copying, kernel launches) are functioning properly. 
 * Begun implementation of Sequence primitives for integers in CUDA. So far we have implemented tabulate, map, reduce, and scan. 
+A large amount of time went into understanding the quirks of the SML foreign function interface, and trying to design 
+an interface around this that was easily usable, preserved a functional style, and would limit how much a user would 
+need to leave SML and write in CUDA/C. Additionally, a large amount of time was spent trying to get the compiled code 
+from the two different languaes to actually link together, and correctly transfer control between the languages. 
+
+# Preliminary Results
+Our work so far allows for two different styles of using this interface. The first is to simply just write 
+CUDA kernels, and run them on arrays using the GPUArray interface, similiar to the way that PyCUDA works. 
+An example of this method can be found in tests/mandelbrot/mandel.sml, and the kernel in lib/userkernels/mandel.cu. 
+(include a code sample of this later). This method is mainly for operations not included in our library, or
+for writing more specific kernels than given by our library. 
+
+The second way is to use the structures in lib/gpusequence. Here, we define a Sequence data structure that has a 
+set of operations, and these operations will be run efficiently in parallel on the GPU. These structures are similiar
+to the Thrust interface, but due to restrictions of the SML foriegn function interface, cannot be polymorphic. Here 
+is an example of how the current interface looks, in comparison to an SML implementation of Sequences. 
+
+~~~~
+structure Seq = ArraySequence
+structure GPUSeq = INTGPUSequenceNaive
+structure Lambdas = GPUINTLambdas
+(* SML SEQUENCE EXAMPLE *)
+
+val init = Seq.tabulate (fn i => i) 10000000
+val scanned = Seq.scanIncl (op +) 0 init
+
+(* SMLGPU SEQUENCE EXAMPLE *)
+
+val init = GPUSeq.tabulate Lambdas.identity 10000000
+val scanned = GPUSeq.scanIncl Lambdas.add 0 init
+
+~~~~
+The semantics of the two versions are nearly identical, aside from being able to inline functions in the sequence version - 
+due to restrictions of CUDA function pointers, functions to be run on the GPU need to be pre compiled and 
 
 # Goals and Deliverables
 
-# Preliminary Results
+
 
 # Updated Schedule
 
