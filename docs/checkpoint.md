@@ -8,6 +8,7 @@ So far, we have completed a large amount of the structure and framework for the 
 * A fast serial Sequence implementation to benchmark against. 
 * Testing frameworks to assure the interface between SML and CUDA (memory copying, kernel launches) are functioning properly. 
 * Begun implementation of Sequence primitives for integers in CUDA. So far we have implemented tabulate, map, reduce, and scan. 
+
 A large amount of time went into understanding the quirks of the SML foreign function interface, and trying to design 
 an interface around this that was easily usable, preserved a functional style, and would limit how much a user would 
 need to leave SML and write in CUDA/C. Additionally, a large amount of time was spent trying to get the compiled code 
