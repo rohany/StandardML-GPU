@@ -49,26 +49,46 @@ and imported in the GPULambdas structures.
 We have run preliminary tests of our GPU implementations of primitives against our fast serial implementation, thrust, and 
 current research work that allows SML to run in parallel on multicore CPU's. 
 
-If we perform a scan over an input of size 100000000, we find these results : 
+If we perform a scan and a reduce over an input of size 100000000, we find these results : 
 
-| Implementation | Time | 
-| --- | --- |
-| Vanilla SML | 0.24 seconds|
-| Thrust | 0.0120 seconds | 
-| SML-GPU | 0.0129 seconds | 
+| Implementation | Scan Time | Reduce Time |
+| --- | --- | --- |
+| Vanilla SML | 0.24 seconds| 0.1041 seconds |
+| Thrust | 0.0120 seconds | 0.0060 seconds |
+| SML-GPU | 0.0129 seconds | 0.0076 seconds |
 
 These results are very promising - even with the overhead of using device function pointers, and having to jump from SML 
-to CUDA during runtime, we are basically running as fast as Thrust, while writing what looks like normal SML. 
+to CUDA during runtime, we are basically running nearly as fast as Thrust, while writing what looks like normal SML. 
 The major price to pay is that we lose some functional features like polymorphism and variable bindings. 
 
 # Goals and Deliverables
+We think we are on track to deliver a CUDA interface for SML and a fast sequence library.  We believe we will be 
+able to finish this, and be able to start implementing operation fusing, and support for more sequence types, such as
+integer pairs or triples. 
 
+We will show at the parallelism competition code demos and performance graphs on a variety of problems, comparing against
+single core and multi core SML, as well as thrust. We hope to be able to say that we are able to offer thrust-level or
+faster performance in SML, and that we beat multicore parallelism on large core counts as well. 
 
-
-# Updated Schedule
+# Revised Schedule
+| Dates | Goal | Description |
+| --- | --- | --- |
+| April 10 | Setup | Completed : Learn about how to setup an interface between CUDA and SML, and begin implementation of kernel launch and GPU memory transfer infrastructure |
+| April 17 | Sequences | Completed : Implement a fast serial sequence structure, and begin GPU implementations for basic types (int, float) |
+| April 24 | Fast Sequences | We are ahead of schedule here, and instead of starting with basic GPU implementations, we went 
+ahead and decided to implement optimized versions of the primitives upfront. What is left is to finish implementations of filter and zip, and write the library implementation for floating point values. 
+We can add more primitives later. This task is for Rohan and Brandon. |
+| May 1 | Optimizations | Add fusing of operations to sequence implementations, and add support for tuples. Both tasks for Rohan 
+and Brandon. |
+| May 8 | Wrapping Up | Begin writeup and presentations, and write performance benchmarking tests. For Rohan and Brandon |
 
 # Issues
 We are running into an issue with compiling and linking device code across files - no matter what, we either run into issues 
 in runtime, or are unable to link the device compiled code with the compiled SML. If we cannot figure out how to get
 CUDA to compile and link in this way, we are unsure how we can implement the auto sequence operation fusing we were planning
 to implement in our proposal. 
+
+Additionally, we were unable to figure out a good have some kind of polymorphism in our library, due to the restrictions
+of typing in C (cannot use templates, and void\* is not the answer to everything), 
+and the foreign function interface of SML. To compensate, we have to make a few copies of our library
+implementations to support different types, and figure out the best way to support tuples. 
