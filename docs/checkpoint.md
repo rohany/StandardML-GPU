@@ -75,11 +75,8 @@ faster performance in SML, and that we beat multicore parallelism on large core 
 | --- | --- | --- |
 | April 10 | Setup | Completed : Learn about how to setup an interface between CUDA and SML, and begin implementation of kernel launch and GPU memory transfer infrastructure |
 | April 17 | Sequences | Completed : Implement a fast serial sequence structure, and begin GPU implementations for basic types (int, float) |
-| April 24 | Fast Sequences | We are ahead of schedule here, and instead of starting with basic GPU implementations, we went 
-ahead and decided to implement optimized versions of the primitives upfront. What is left is to finish implementations of filter and zip, and write the library implementation for floating point values. 
-We can add more primitives later. This task is for Rohan and Brandon. |
-| May 1 | Optimizations | Add fusing of operations to sequence implementations, and add support for tuples. Both tasks for Rohan 
-and Brandon. |
+| April 24 | Fast Sequences | We are ahead of schedule here, and instead of starting with basic GPU implementations, we went ahead and decided to implement optimized versions of the primitives upfront. What is left is to finish implementations of filter and zip, and write the library implementation for floating point values. We can add more primitives later. This task is for Rohan and Brandon. |
+| May 1 | Optimizations | Add fusing of operations to sequence implementations, and add support for tuples. Both tasks for Rohan and Brandon. |
 | May 8 | Wrapping Up | Begin writeup and presentations, and write performance benchmarking tests. For Rohan and Brandon |
 
 # Issues
