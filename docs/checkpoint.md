@@ -71,6 +71,7 @@ single core and multi core SML, as well as thrust. We hope to be able to say tha
 faster performance in SML, and that we beat multicore parallelism on large core counts as well. 
 
 # Revised Schedule
+
 | Dates | Goal | Description |
 | --- | --- | --- |
 | April 10 | Setup | Completed : Learn about how to setup an interface between CUDA and SML, and begin implementation of kernel launch and GPU memory transfer infrastructure |
