@@ -2,10 +2,12 @@
 #include "../headers/hofs.h"
 #include "../funcptrs/builtin_tabulate_and_map_int.h"
 #include "../funcptrs/user_tabulate_int.h"
-#include "../funcptrs/builtin_map_int.h"
 #include "../funcptrs/user_map_int.h"
 #include "../funcptrs/builtin_reduce_and_scan_int.h"
 #include "../funcptrs/user_reduce_int.h"
+#include "../funcptrs/user_scan_int.h"
+#include "../funcptrs/builtin_filter_int.h"
+#include "../funcptrs/user_filter_int.h"
 #include <stdio.h>
 #include <time.h>
 
@@ -17,6 +19,8 @@
 #define threads_scan 1024
 #define block_red_size_scan (threads_scan / 32)
 
+#define threads_filter 256
+
 //Tabulate
 __global__ 
 void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
@@ -27,10 +31,10 @@ void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
   }
 
   arr[idx] = f(idx);
-
 }
+
 extern "C"
-void* tabulate_int(void* f, int size){
+void* tabulate_int(int size, void* f){
   
   tabulate_fun_int hof = (tabulate_fun_int)f;
   
@@ -39,7 +43,7 @@ void* tabulate_int(void* f, int size){
 
   int blockNum = (size / 256) + 1;
   tabulate_int_kernel<<<blockNum, 256>>>((int*)dev_ptr, size, hof);
-  
+  cudaDeviceSynchronize();
   return dev_ptr;
 
 }
@@ -454,6 +458,57 @@ int exclusive_scan_int(void* in, void* f, int length, int b){
   }
 }
 
+__global__
+void filter_map(int* in, int* out1, int len, filter_fun_int f){
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if(idx < len){
+    if(f(in[idx])){
+      out1[idx] = 1;
+    }
+    else{
+      out1[idx] = 0;
+    }
+  }
+}
+__global__
+void squish(int* in, int* scanned, int* out, int length, filter_fun_int f){
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  
+  if(idx < length){
+    if(f(in[idx]) == 1){
+      out[scanned[idx]] = in[idx];
+    }
+  }
+}
+
+extern "C"
+void* filter_int(void* arr, int length, void* f, Pointer outlen){
+  filter_fun_int hof = (filter_fun_int)f;
+  
+  int blocks = (length / threads_filter) + 1;
+    
+  // make buffer array
+
+  // this map could have been fused in with the scan with some 
+  // extra code copy pasta i didnt want to do
+
+  int* scanned;
+  cudaMalloc(&scanned, sizeof(int) * length);
+  filter_map<<<blocks, threads_filter>>>((int*)arr, scanned, length, hof);
+  
+  //scan over the bits
+  reduce_fun_int add = (reduce_fun_int)gen_add_int();
+  int len = exclusive_scan_int(scanned, (void*)add, length, 0);
+
+  int* res;
+  cudaMalloc(&res, sizeof(int) * len);
+
+  squish<<<blocks, threads_filter>>>((int*)arr, scanned, res, length, hof);
+  *(int*)outlen = len;
+  //cudaFree(bits);
+  cudaFree(scanned);
+  return res;
+}
 /*
 //Reduce - cite http://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf
 __global__

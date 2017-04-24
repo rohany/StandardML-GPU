@@ -17,10 +17,13 @@ struct
   val excl_scan_cuda = 
     _import "exclusive_scan_int" public : 
     MLton.Pointer.t * MLton.Pointer.t * int * int -> int;
+  val filter_cuda = 
+    _import "filter_int" public : 
+    MLton.Pointer.t * int * MLton.Pointer.t * int ref -> MLton.Pointer.t;
 
   fun all b n = initInt n b
 
-  fun tabulate f n ctype = 
+  fun tabulate f n = 
     let
       val a = tabulate_cuda (n, f)
     in
@@ -58,8 +61,14 @@ struct
     in
       (a', n, CTYPES.CINT)
     end
-
-  val filter = ()
+  
+  fun filter p (a, n, _) = 
+    let
+      val outlen = ref 0
+      val a' = filter_cuda(a, n, p, outlen)
+    in
+      (a', !outlen, CTYPES.CINT)
+    end
 
   val zip = ()
 
