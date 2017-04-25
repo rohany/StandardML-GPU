@@ -1,7 +1,8 @@
 NVFLAGS = -arch=compute_61 -code=sm_61 -O3
 OUTDIR = objs
 
-GOBJS = $(OUTDIR)/allocate.o $(OUTDIR)/int_sequence.o $(OUTDIR)/mandel.o
+GOBJS = $(OUTDIR)/allocate.o $(OUTDIR)/int_sequence.o $(OUTDIR)/mandel.o \
+				$(OUTDIR)/float_sequence.o
 
 
 gpublob.o : $(OUTDIR) $(GOBJS)
@@ -11,7 +12,9 @@ objs :
 $(OUTDIR)/allocate.o : cudalib/allocate.cu
 	nvcc -c -o $(OUTDIR)/allocate.o cudalib/allocate.cu $(NVFLAGS)
 $(OUTDIR)/int_sequence.o : cudalib/int_sequence.cu
-	nvcc -c -o $(OUTDIR)/sequence.o cudalib/int_sequence.cu $(NVFLAGS)
+	nvcc -c -o $(OUTDIR)/int_sequence.o cudalib/int_sequence.cu $(NVFLAGS)
+$(OUTDIR)/float_sequence.o : cudalib/float_sequence.cu
+	nvcc -c -o $(OUTDIR)/float_sequence.o cudalib/float_sequence.cu $(NVFLAGS)
 $(OUTDIR)/mandel.o : userkernels/mandel.cu
 	nvcc -c -o $(OUTDIR)/mandel.o userkernels/mandel.cu $(NVFLAGS)
 
