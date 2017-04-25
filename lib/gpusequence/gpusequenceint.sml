@@ -1,4 +1,4 @@
-structure INTGPUSequenceNaive = 
+structure INTGPUSequence = 
 struct
   
   open GPUArray
@@ -20,6 +20,9 @@ struct
   val filter_cuda = 
     _import "filter_int" public : 
     MLton.Pointer.t * int * MLton.Pointer.t * int ref -> MLton.Pointer.t;
+  val zipwith_cuda = 
+    _import "zipwith_int" public : 
+    MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int -> MLton.Pointer.t;
 
   fun all b n = initInt n b
 
@@ -69,7 +72,13 @@ struct
     in
       (a', !outlen, CTYPES.CINT)
     end
-
-  val zip = ()
+  
+  (* requires both have the same length *)
+  fun zipwith f (a1, n, _) (a2, _, _) =
+    let
+      val out = zipwith_cuda(a1, a2, f, n)
+    in
+      (out, n, CTYPES.CINT)
+    end
 
 end

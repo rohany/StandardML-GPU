@@ -1,7 +1,7 @@
 val [x] = CommandLine.arguments()
 val SOME(size) = Int.fromString x
 structure Seq = ArraySequence
-structure GPUSeq = INTGPUSequenceNaive
+structure GPUSeq = INTGPUSequence
 val a1 = Seq.tabulate(fn i => i) size
 val (a1, str1) = Timer.run (fn () => Seq.map (fn i => 2) a1)
 val _ = print("SML : " ^ str1 ^ "\n")

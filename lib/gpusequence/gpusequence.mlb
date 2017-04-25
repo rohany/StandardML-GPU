@@ -4,7 +4,7 @@ local
   ../defs.mlb
   ../gpuarray/gpuarray.mlb
   ../ctypes/ctypes.mlb
-  ./gpusequencenaive.sml
+  ./gpusequenceint.sml
 in
-  structure INTGPUSequenceNaive
+  structure INTGPUSequence
 end

@@ -2,7 +2,7 @@ val [x] = CommandLine.arguments()
 val SOME(size) = Int.fromString(x)
 
 structure Seq = ArraySequence
-structure GPUSeq = INTGPUSequenceNaive
+structure GPUSeq = INTGPUSequence
 
 val s1 = Seq.tabulate (fn i => 2) size
 val (sres, str1) = Timer.run (fn () => Seq.scanIncl (op +) 0 s1)
