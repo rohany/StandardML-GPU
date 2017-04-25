@@ -5,6 +5,8 @@ local
   ../gpuarray/gpuarray.mlb
   ../ctypes/ctypes.mlb
   ./gpusequenceint.sml
+  ./gpusequencefloat.sml
 in
   structure INTGPUSequence
+  structure FLOATGPUSequence
 end
