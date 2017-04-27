@@ -24,7 +24,7 @@ struct
     _import "zipwith_float" public : 
     MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int -> MLton.Pointer.t;
 
-  fun all b n = initIntFloat n b
+  fun all b n = initFloat n b
 
   fun tabulate f n = 
     let
