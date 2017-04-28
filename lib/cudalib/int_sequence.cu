@@ -242,7 +242,7 @@ int fused_reduce_int_shfl(void* arr, int size, int b,
   reduce_int_kernel_fused<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
                                                   size, b, hof, gpufuncs, funclen);
   reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
-
+  
   int ret;
   cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
   cudaFree(res);
