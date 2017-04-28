@@ -68,11 +68,42 @@ void* map_int(void* inarr, void* f, int size){
   int blockNum = (size / 256) + 1;
   
   map_int_kernel<<<blockNum, 256>>>((int*)inarr, size, hof);
-
+  cudaDeviceSynchronize();
   return inarr;
 
 }
 
+__global__
+void map_force_kernel(int* in, int len, map_fun_int* funcs, int funclen){
+
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  
+  if(idx < len){
+    for(int i = 0;i < funclen;i++){
+      in[idx] = funcs[i](in[idx]);
+    }
+  }
+}
+
+extern "C"
+void map_force(void* in, int len, Pointer funcs, int funclen){
+  int* arr = (int*)in;
+  map_fun_int* ops = (map_fun_int*)funcs;
+  
+  map_fun_int* gpufuncs;
+  cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
+
+  cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
+  
+  int blocks = (len / 256) + 1;
+  map_force_kernel<<<blocks, 256>>>(arr, len, gpufuncs, funclen);
+
+  cudaDeviceSynchronize();
+  /*
+  cudaError_t err = cudaGetLastError();
+  printf("%s\n", cudaGetErrorString(err));
+  */
+}
 
 __inline__ __device__
 int warp_red_int(int t, reduce_fun_int f){

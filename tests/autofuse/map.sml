@@ -1,7 +1,9 @@
 val [x] = CommandLine.arguments()
 val SOME(size) = Int.fromString x
+
 structure Seq = ArraySequence
 structure GPUSeq = INTGPUSequence
+structure Fused = FusedINTGPUSequence
 
 val a1 = Seq.tabulate(fn i => 1) size
 
@@ -17,9 +19,12 @@ fun run () =
   in
     a
   end
-
 val (a1, str1) = Timer.run run
 val _ = print("SML : " ^ str1 ^ "\n")
+
+
+
+
 val a2 = GPUArray.initInt size 1
 
 fun run () = 
@@ -38,9 +43,31 @@ fun run () =
 
 val (res2, str2) = Timer.run run
 val _ = print("SMLGPU : " ^ str2 ^ "\n")
-val arr = GPUArray.toIntArray res2
-(*val _ = print(Printer.arrayToString Int.toString arr ^ "\n")*)
-val a3 = GPUSeq.toArraySequence res2
-val wei = Seq.length (Seq.filter (fn x => x = 128) a3)
-val _ = if wei = size then print("Success!\n") else print("Test Failed\n")
+
+
+fun run a () = 
+  let
+    val a = Fused.map GPUINTLambdas.double a
+    val a = Fused.map GPUINTLambdas.double a
+    val a = Fused.map GPUINTLambdas.double a
+    val a = Fused.map GPUINTLambdas.double a
+    val a = Fused.map GPUINTLambdas.double a
+    val a = Fused.map GPUINTLambdas.double a
+    val b = Fused.map GPUINTLambdas.double a
+  in
+    Fused.mapForce b
+  end
+
+val a4 = Fused.all 1 size
+
+val (res2, str2) = Timer.run (run a4)
+
+val hostarr = Fused.toArray res2
+
+val _ = print("Fused Time : " ^ str2 ^ "\n")
+
+(*val _ = print(Printer.arrayToString Int.toString hostarr ^ "\n")*)
+
+
+(*val _ = if wei = size then print("Success!\n") else print("Test Failed\n")*)
 

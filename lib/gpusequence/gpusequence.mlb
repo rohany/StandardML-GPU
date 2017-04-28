@@ -6,7 +6,9 @@ local
   ../ctypes/ctypes.mlb
   ./gpusequenceint.sml
   ./gpusequencefloat.sml
+  ./fusedgpusequenceint.sml
 in
   structure INTGPUSequence
   structure FLOATGPUSequence
+  structure FusedINTGPUSequence
 end

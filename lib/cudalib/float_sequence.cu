@@ -70,6 +70,7 @@ void* map_float(void* inarr, void* f, int size){
   int blockNum = (size / 256) + 1;
   
   map_float_kernel<<<blockNum, 256>>>((float*)inarr, size, hof);
+  cudaDeviceSynchronize();
 
   return inarr;
 
