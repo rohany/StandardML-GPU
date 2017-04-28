@@ -9,8 +9,15 @@ struct
     _import "tabulate_int" public : int * MLton.Pointer.t -> MLton.Pointer.t;
   val map_force_cuda = 
     _import "map_force" public : 
-    MLton.Pointer.t * int * MLton.Pointer.t Array.array * int -> unit; 
+    MLton.Pointer.t * int * MLton.Pointer.t Array.array * int -> unit;
+  val reduce_cuda = 
+    _import "fused_reduce_int_shfl" public : 
+    MLton.Pointer.t * int * int * MLton.Pointer.t * MLton.Pointer.t Array.array
+    * int -> int;
 
+  
+  (* it is possible for us to add stuff like fusing more than just
+   * map operations, but for starters, we will fuse maps *)
 
   fun listToArr l = Array.fromList(List.rev l)
 
@@ -29,6 +36,15 @@ struct
       val () = map_force_cuda(a, n, arr, Array.length arr)
     in
       (s, [])
+    end
+
+  (* reduce will force the computation as well 
+   * as perform the reduction *)
+  fun reduce f b ((a,n,_), l) =
+    let
+      val funcs = listToArr l
+    in
+      reduce_cuda(a, n, b, f, funcs, Array.length funcs)
     end
 
   fun toArraySequence (s, l) = GPUSeq.toArraySequence s

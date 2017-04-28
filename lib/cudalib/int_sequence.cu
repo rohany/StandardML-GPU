@@ -22,6 +22,18 @@
 
 #define threads_filter 256
 
+map_fun_int* map_list_to_arr(void* funcs, int funclen){
+  
+  map_fun_int* ops = (map_fun_int*)funcs;
+  
+  map_fun_int* gpufuncs;
+  cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
+
+  cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
+  
+  return gpufuncs; 
+}
+
 //Tabulate
 __global__ 
 void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
@@ -79,26 +91,25 @@ void map_force_kernel(int* in, int len, map_fun_int* funcs, int funclen){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   
   if(idx < len){
+    int a = in[idx];
     for(int i = 0;i < funclen;i++){
-      in[idx] = funcs[i](in[idx]);
+      a = funcs[i](a);
     }
+    in[idx] = a;
   }
 }
 
 extern "C"
 void map_force(void* in, int len, Pointer funcs, int funclen){
   int* arr = (int*)in;
-  map_fun_int* ops = (map_fun_int*)funcs;
   
-  map_fun_int* gpufuncs;
-  cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
+  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
 
-  cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
-  
   int blocks = (len / 256) + 1;
   map_force_kernel<<<blocks, 256>>>(arr, len, gpufuncs, funclen);
 
   cudaDeviceSynchronize();
+  cudaFree(gpufuncs);
   /*
   cudaError_t err = cudaGetLastError();
   printf("%s\n", cudaGetErrorString(err));
@@ -179,6 +190,57 @@ int reduce_int_shfl(void* arr, int size, int b, void* f){
   cudaMalloc(&res, sizeof(int) * numBlocks);
   reduce_int_kernel<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
                                                    size, b, hof);
+  reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
+
+  int ret;
+  cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaFree(res);
+  return ret;
+}
+
+__global__
+void reduce_int_kernel_fused(int* in, int* out, int size, int b, 
+                             reduce_fun_int f, map_fun_int* funcs, int funclen){
+
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  int sum = b;
+  
+  #pragma unroll
+  for(int i = idx;i < size;i += blockDim.x * gridDim.x){
+    int a = in[i];
+    for(int j = 0;j < funclen;j++){
+      a = funcs[j](a);
+    }
+    in[i] = a;
+    sum = f(sum,a);
+    //sum += in[i];
+  }
+  
+  sum = reduce_block_int(sum, b, f);
+  
+  if(threadIdx.x == 0){
+    out[blockIdx.x] = sum;
+  }
+  
+}
+
+
+//FUSED REDUCE 
+extern "C"
+int fused_reduce_int_shfl(void* arr, int size, int b, 
+                          void* f, Pointer funcs, int funclen){
+
+  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
+  
+  reduce_fun_int hof = (reduce_fun_int)f;
+  
+
+  int numBlocks = (size / threads_reduce) + 1;
+  void* res;
+  cudaMalloc(&res, sizeof(int) * numBlocks);
+
+  reduce_int_kernel_fused<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
+                                                  size, b, hof, gpufuncs, funclen);
   reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
 
   int ret;
