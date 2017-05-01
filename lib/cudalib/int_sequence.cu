@@ -1,14 +1,14 @@
 #include "../headers/export.h"
 #include "../headers/hofs.h"
-#include "../funcptrs/builtin_tabulate_and_map_int.h"
-#include "../funcptrs/user_tabulate_int.h"
-#include "../funcptrs/user_map_int.h"
-#include "../funcptrs/builtin_reduce_and_scan_int.h"
-#include "../funcptrs/user_reduce_int.h"
-#include "../funcptrs/user_scan_int.h"
-#include "../funcptrs/builtin_filter_int.h"
-#include "../funcptrs/user_filter_int.h"
-#include "../funcptrs/user_zipwith_int.h"
+#include "../funcptrs/builtin_tabulate_and_map_intxint.h"
+#include "../funcptrs/user_tabulate_int_tuple.h"
+#include "../funcptrs/user_map_int_tuple.h"
+#include "../funcptrs/builtin_reduce_and_scan_int_tuple.h"
+#include "../funcptrs/user_reduce_int_tuple.h"
+#include "../funcptrs/user_scan_int_tuple.h"
+#include "../funcptrs/builtin_filter_int_tuple.h"
+#include "../funcptrs/user_filter_int_tuple.h"
+#include "../funcptrs/user_zipwith_int_tuple.h"
 #include <stdio.h>
 #include <time.h>
 
@@ -22,47 +22,30 @@
 
 #define threads_filter 256
 
-map_fun_int* map_list_to_arr(void* funcs, int funclen){
-  
-  map_fun_int* ops = (map_fun_int*)funcs;
-  
-  map_fun_int* gpufuncs;
-  cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
-
-  cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
-  
-  return gpufuncs; 
-}
-__device__ __inline__ 
-int apply_fuse(int in, map_fun_int* funcs, int len){
-  for(int i = 0;i < len;i++){
-    in = funcs[i](in);
-  }
-  return in;
-}
-
 //Tabulate
 __global__ 
-void tabulate_int_kernel(int* arr, int len, tabulate_fun_int f){
+void tabulate_int_tuple_kernel(int* arr_1, int* arr_2, int len, tabulate_fun_int_tuple f){
   
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if(idx >= len){
     return;
   }
 
-  arr[idx] = f(idx);
+  arr_1[idx] = f(idx);
+  arr_2[idx] = f(idx);
 }
 
 extern "C"
-void* tabulate_int(int size, void* f){
+void* tabulate_int_tuple(int size, void* f){
   
-  tabulate_fun_int hof = (tabulate_fun_int)f;
+  tabulate_fun_int_tuple hof = (tabulate_fun_int_tuple)f;
   
-  void* dev_ptr;
-  cudaMalloc(&dev_ptr, sizeof(int) * size);
+  void* dev_ptr_1, dev_ptr_2;
+  cudaMalloc(&dev_ptr_1, sizeof(int) * size);
+  cudaMalloc(&dev_ptr_2, sizeof(int) * size);
 
   int blockNum = (size / 256) + 1;
-  tabulate_int_kernel<<<blockNum, 256>>>((int*)dev_ptr, size, hof);
+  tabulate_int_tuple_kernel<<<blockNum, 256>>>((int*)dev_ptr_2, (int*)dev_ptr_2 size, hof);
   cudaDeviceSynchronize();
   return dev_ptr;
 
@@ -70,116 +53,103 @@ void* tabulate_int(int size, void* f){
 
 //Map
 __global__
-void map_int_kernel(int* arr, int len, map_fun_int f){
+void map_int_tuple_kernel(int* arr_1, int* arr_2 int len, map_fun_int_tuple f){
   
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   if(idx >= len){
     return;
   }
 
-  arr[idx] = f(arr[idx]);
-
+  std::pair<int, int> tuple = f(arr_1[idx],arr_2[idx]);
+  arr_1[idx] = tuple.first
+  arr_2[idx] = tuple.second
 }
 extern "C"
-void* map_int(void* inarr, void* f, int size){
+std::pair<void*, void*> map_int_tuple(void* inarr_1, void* inarr_2, void* f, int size){
   
-  map_fun_int hof = (map_fun_int)f;      
+  map_fun_int_tuple hof = (map_fun_int_tuple)f;      
   int blockNum = (size / 256) + 1;
   
-  map_int_kernel<<<blockNum, 256>>>((int*)inarr, size, hof);
-  cudaDeviceSynchronize();
-  return inarr;
+  map_intxint_kernel<<<blockNum, 256>>>((int*)inarr_1, (int*)inarr_2, size, hof);
+
+  std::pair<int, int> ret = pair(inarr_1, inarr_2)
+
+  return std::make_pair(inarr_1, inarr_2);
 
 }
 
-__global__
-void map_force_kernel(int* in, int len, map_fun_int* funcs, int funclen){
-
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  
-  if(idx < len){
-    int a = in[idx];
-    for(int i = 0;i < funclen;i++){
-      a = funcs[i](a);
-    }
-    in[idx] = a;
-  }
-}
-
-extern "C"
-void map_force(void* in, int len, Pointer funcs, int funclen){
-  int* arr = (int*)in;
-  
-  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
-
-  int blocks = (len / 256) + 1;
-  map_force_kernel<<<blocks, 256>>>(arr, len, gpufuncs, funclen);
-
-  cudaDeviceSynchronize();
-  cudaFree(gpufuncs);
-  /*
-  cudaError_t err = cudaGetLastError();
-  printf("%s\n", cudaGetErrorString(err));
-  */
-}
 
 __inline__ __device__
-int warp_red_int(int t, reduce_fun_int f){
-  int res = t;
+std::pair<int,int> warp_red_int_tuple(int t_1, int t_2, reduce_fun_int_tuple f){
+  int res_1 = t_1;
+  int res_2 = t_2;
 
   #pragma unroll
   for(int i = warpSize / 2;i > 0;i /= 2){
-    int a = __shfl_down(res, i);
-    res = f(res, a);
+    int a = __shfl_down(res_1, res_2, i);
+    res = f(res_1, res_2, a);
+    res_1 = res.first();
+    res_2 = res.second();
+
     //res += a;
   }
+
   return res;
 }
 
 __inline__ __device__
-int reduce_block_int(int t, int b, reduce_fun_int f){
+std::pair<int,int> reduce_block_int_tuple(int t_1, int t_2, int b_1, int b_2, reduce_fun_int_tuple f){
   
   // assuming warp size is 32
   // can fix later in the kernel call
-  __shared__ int warp_reds[block_red_size_reduce];
+  __shared__ int warp_reds_1[block_red_size_reduce];
+  __shared__ int warp_reds_2[block_red_size_reduce];
 
   int warpIdx = threadIdx.x / warpSize;
 
   int localIdx = threadIdx.x % warpSize;
 
-  int inter_res = warp_red_int(t, f);
+  std::pair<int,int> inter_res = warp_red_int_tuple(t_1, t_2, f);
   
   if(localIdx == 0){
-    warp_reds[warpIdx] = inter_res;
+    warp_reds_1[warpIdx] = inter_res.first;
+    warp_reds_2[warpIdx] = inter_res.second;
   }
 
   __syncthreads();
   
-  int broadval2 = (threadIdx.x < block_red_size_reduce) ? warp_reds[localIdx] : b;
-  int res = b;
+  int broadval2_1 = (threadIdx.x < block_red_size_reduce) ? warp_reds_1[localIdx] : b_1;
+  int broadval2_2 = (threadIdx.x < block_red_size_reduce) ? warp_reds_2[localIdx] : b_2;
+
+  std::pair<int, int> res = std::make_pair(b_1, b_2);
   if(warpIdx == 0){
-    res = warp_red_int(broadval2, f);
+    res = warp_red_int_tuple(broadval2_1, broadval2_2, f);
   }
 
   return res;
 }
 
 __global__
-void reduce_int_kernel(int* in, int* out, int size, int b, reduce_fun_int f){
+void reduce_int_tuple_kernel(int* in_1, int* in_2, int* out_1, int* our_2, int size, int b_1, int b_2, reduce_fun_int_tuple f){
 
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int sum = b;
+  int sum_1 = b_1;
+  int sum_2 = b_2;
+  std::pair<int, int> sum;
   
   #pragma unroll
-  for(int i = idx;i < size;i += blockDim.x * gridDim.x){
-    sum = f(sum,in[i]);
+  for(int i = idx; i < size; i += blockDim.x * gridDim.x){
+    sum = f(sum_1, sum_2, in_1[i], in_2[i]);
+    sum_1 = sum.first;
+    sum_2 = sum.second;
     //sum += in[i];
   }
   
-  sum = reduce_block_int(sum, b, f);
+  sum = reduce_block_int_tuple(sum_1, sum_2, b_1, b_2, f);
   
   if(threadIdx.x == 0){
-    out[blockIdx.x] = sum;
+    out_1[blockIdx.x] = sum.first;
+    out_2[blockIdx.x] = sum.second;
   }
   
 }
@@ -187,103 +157,61 @@ void reduce_int_kernel(int* in, int* out, int size, int b, reduce_fun_int f){
 // cite : https://devblogs.nvidia.com/parallelforall/faster-parallel-reductions-kepler
 // for algorithm / ideas on how to use shfl methods for fast reductions
 extern "C"
-int reduce_int_shfl(void* arr, int size, int b, void* f){
+std::pair<int,int> reduce_int_tuple_shfl(void* arr_1, void* arr_2, int size, int b_1, int b_2, void* f){
 
-  reduce_fun_int hof = (reduce_fun_int)f;
+  reduce_fun_int_tuple hof = (reduce_fun_int_tuple) f;
   
 
   int numBlocks = (size / threads_reduce) + 1;
-  void* res;
-  cudaMalloc(&res, sizeof(int) * numBlocks);
-  reduce_int_kernel<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
-                                                   size, b, hof);
-  reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
+  void* res_1;
+  void* res_2;
 
-  int ret;
-  cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaFree(res);
-  return ret;
-}
+  cudaMalloc(&res_1, sizeof(int) * numBlocks);
+  cudaMalloc(&res_2, sizeof(int) * numBlocks);
+  reduce_int_tuple_kernel<<<numBlocks, threads_reduce>>>((int*)arr_1, (int*)arr_2, (int*)res_1, (int*)res_2, 
+                                                   size, b_1, b_2, hof);
+  reduce_int_tuple_kernel<<<1, 1024>>>((int*)res_1, (int*)res_2, (int*)res_1, (int*)res_2, numBlocks, b_1, b_2, hof);
 
-__global__
-void reduce_int_kernel_fused(int* in, int* out, int size, int b, 
-                             reduce_fun_int f, map_fun_int* funcs, int funclen){
+  std::pair<int, int> ret;
+  cudaMemcpy(&ret.first,  res_1, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&ret.second, res_2, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaFree(res_1);
+  cudafree(res_2);
 
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int sum = b;
-  
-  #pragma unroll
-  for(int i = idx;i < size;i += blockDim.x * gridDim.x){
-    int a = in[i];
-    for(int j = 0;j < funclen;j++){
-      a = funcs[j](a);
-    }
-    in[i] = a;
-    sum = f(sum,a);
-    //sum += in[i];
-  }
-  
-  sum = reduce_block_int(sum, b, f);
-  
-  if(threadIdx.x == 0){
-    out[blockIdx.x] = sum;
-  }
-  
-}
-
-
-//FUSED REDUCE 
-extern "C"
-int fused_reduce_int_shfl(void* arr, int size, int b, 
-                          void* f, Pointer funcs, int funclen){
-
-  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
-  
-  reduce_fun_int hof = (reduce_fun_int)f;
-  
-
-  int numBlocks = (size / threads_reduce) + 1;
-  void* res;
-  cudaMalloc(&res, sizeof(int) * numBlocks);
-
-  reduce_int_kernel_fused<<<numBlocks, threads_reduce>>>((int*)arr, (int*)res, 
-                                                  size, b, hof, gpufuncs, funclen);
-  reduce_int_kernel<<<1, 1024>>>((int*)res, (int*)res, numBlocks, b, hof);
-  
-  int ret;
-  cudaMemcpy(&ret, res, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaFree(gpufuncs);
-  cudaFree(res);
   return ret;
 }
 
 //BEGIN SCAN
 
 __device__ __inline__
-int warp_scan_shfl(int b, scan_fun_int f, int* out, int idx, int length){
+std::pair<int, int> warp_scan_shfl(int b_1, int b_2, scan_fun_int_tuple f, int* out_1, int* out_2, int idx, int length){
   int warpIdx = threadIdx.x % warpSize;
-  int res;
+  std::pair<int, int> res;
   if(idx < length){
-    res = out[idx];
+    res.first = out_1[idx];
+    res.second = out_2[idx];
   }
   else{
-    res = b;
+    res.first = b_1;
+    res.second = b_2;
   }
   #pragma unroll
   for(int i = 1;i < warpSize;i *= 2){
-    int a = __shfl_up(res, i);
+    int a_1 = __shfl_up(res.first, i);
+    int a_2 = __shfl_up(res.second, i);
     if(i <= warpIdx){
-      res = f(a, res);
+      res = f(a_1, a_2, res.first, res.second);
     }
   }
   if(idx < length){
-    out[idx] = res;
+    out_1[idx] = res.first;
+    out_2[idx] = res.second;
   }
   return res;
 }
 
 __device__ __inline__
-int block_scan(int* in, int length, scan_fun_int f, int b){
+std::pair<int, int> block_scan(int* in_1, int* in_2, int length, scan_fun_int_tuple f, int b_1, int b_2){
 
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -320,7 +248,7 @@ int block_scan(int* in, int length, scan_fun_int f, int b){
 
 //inclusive kernel
 __global__
-void scan_int_kernel(int* in, int* block_results, scan_fun_int f, int b, int length){
+void scan_intxint_kernel(int* in, int* block_results, scan_fun_intxint f, int b, int length){
   
   int block_res = block_scan(in, length, f, b);
   if(threadIdx.x == block_red_size_scan - 1){
@@ -328,7 +256,7 @@ void scan_int_kernel(int* in, int* block_results, scan_fun_int f, int b, int len
   }
 }
 __global__
-void compress_results(int* block_res, int* out, int len, scan_fun_int f){
+void compress_results(int* block_res, int* out, int len, scan_fun_intxint f){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
   if(blockIdx.x == 0){
@@ -343,7 +271,7 @@ void compress_results(int* block_res, int* out, int len, scan_fun_int f){
 
 //this is terrible
 __global__
-void serial_scan(int* bres, int len, int b, scan_fun_int f){
+void serial_scan(int* bres, int len, int b, scan_fun_intxint f){
   int res = b;
   #pragma unroll
   for(int i = 0;i < len;i++){
@@ -353,9 +281,9 @@ void serial_scan(int* bres, int len, int b, scan_fun_int f){
 }
 
 extern "C"
-void* inclusive_scan_int(void* in, void* f, int length, int b){
+void* inclusive_scan_intxint(void* in, void* f, int length, int b){
   
-  scan_fun_int hof = (scan_fun_int)f;
+  scan_fun_intxint hof = (scan_fun_intxint)f;
 
   int num_blocks_first = (length / threads_scan) + 1;
   int* block_results;
@@ -363,7 +291,7 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
   cudaMalloc(&block_results, sizeof(int) * num_blocks_first);
   cudaMalloc(&dummy, sizeof(int));
 
-  scan_int_kernel<<<num_blocks_first, threads_scan>>>
+  scan_intxint_kernel<<<num_blocks_first, threads_scan>>>
           ((int*)in, block_results, hof, b, length);
 
   if(num_blocks_first == 1){
@@ -373,7 +301,7 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
     return in;
   }
   else if(num_blocks_first <= 1024){
-    scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
+    scan_intxint_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
     compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
     cudaDeviceSynchronize();
     cudaFree(block_results);
@@ -384,7 +312,7 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
     int leftover = (num_blocks_first / threads_scan) + 1;
     int* block_block_results;
     cudaMalloc(&block_block_results, sizeof(int) * leftover);
-    scan_int_kernel<<<leftover, threads_scan>>>
+    scan_intxint_kernel<<<leftover, threads_scan>>>
             (block_results, block_block_results, hof, b, num_blocks_first);
     serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
     compress_results<<<leftover, threads_scan>>>
@@ -397,76 +325,11 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
     return in;
   }
 }
-
-
-__global__
-void scan_int_kernel_fused(int* in, int* block_results, scan_fun_int f, int b, 
-                           int length, map_fun_int* funcs, int funclen){
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if(idx < length){
-    in[idx] = apply_fuse(in[idx], funcs, funclen);
-  }
-  
-  int block_res = block_scan(in, length, f, b);
-  if(threadIdx.x == block_red_size_scan - 1){
-    block_results[blockIdx.x] = block_res;
-  }
-}
-
-extern "C"
-void* fused_inclusive_scan_int(void* in, void* f, int length, int b, Pointer funcs, int funclen){
-  
-  scan_fun_int hof = (scan_fun_int)f;
-  
-  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
-
-  int num_blocks_first = (length / threads_scan) + 1;
-  int* block_results;
-  int* dummy;
-  cudaMalloc(&block_results, sizeof(int) * num_blocks_first);
-  cudaMalloc(&dummy, sizeof(int));
-
-  scan_int_kernel_fused<<<num_blocks_first, threads_scan>>>
-          ((int*)in, block_results, hof, b, length, gpufuncs, funclen);
-  cudaFree(gpufuncs);
-  if(num_blocks_first == 1){
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    return in;
-  }
-  else if(num_blocks_first <= 1024){
-    scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
-    compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    return in;
-  }
-  else{
-    int leftover = (num_blocks_first / threads_scan) + 1;
-    int* block_block_results;
-    cudaMalloc(&block_block_results, sizeof(int) * leftover);
-    scan_int_kernel<<<leftover, threads_scan>>>
-            (block_results, block_block_results, hof, b, num_blocks_first);
-    serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
-    compress_results<<<leftover, threads_scan>>>
-            (block_block_results, block_results, num_blocks_first, hof);
-    compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    cudaFree(block_block_results);
-    return in;
-  }
-}
-
-
 
 //BEGIN EXCLUSIVE SCAN
 
 __global__
-void excl_compress_results(int* block_res, int* out, int len, scan_fun_int f, int* final, int b){
+void excl_compress_results(int* block_res, int* out, int len, scan_fun_intxint f, int* final, int b){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if(idx >= len) return;
   if(blockIdx.x != 0){
@@ -493,9 +356,9 @@ void excl_compress_results(int* block_res, int* out, int len, scan_fun_int f, in
 }
 
 extern "C"
-int exclusive_scan_int(void* in, void* f, int length, int b){
+int exclusive_scan_intxint(void* in, void* f, int length, int b){
   
-  scan_fun_int hof = (scan_fun_int)f;
+  scan_fun_intxint hof = (scan_fun_intxint)f;
 
   int num_blocks_first = (length / threads_scan) + 1;
   int* block_results;
@@ -506,7 +369,7 @@ int exclusive_scan_int(void* in, void* f, int length, int b){
   cudaMalloc(&final_val, sizeof(int));
 
 
-  scan_int_kernel<<<num_blocks_first, threads_scan>>>
+  scan_intxint_kernel<<<num_blocks_first, threads_scan>>>
           ((int*)in, block_results, hof, b, length);
   int res;
   if(num_blocks_first == 1){
@@ -520,7 +383,7 @@ int exclusive_scan_int(void* in, void* f, int length, int b){
     return res;
   }
   else if(num_blocks_first <= 1024){
-    scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
+    scan_intxint_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
     excl_compress_results<<<num_blocks_first, threads_scan>>>
             (block_results, (int*)in, length, hof, final_val, b);
     cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
@@ -534,69 +397,7 @@ int exclusive_scan_int(void* in, void* f, int length, int b){
     int leftover = (num_blocks_first / threads_scan) + 1;
     int* block_block_results;
     cudaMalloc(&block_block_results, sizeof(int) * leftover);
-    scan_int_kernel<<<leftover, threads_scan>>>
-            (block_results, block_block_results, hof, b, num_blocks_first);
-    serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
-    compress_results<<<leftover, threads_scan>>>
-            (block_block_results, block_results, num_blocks_first, hof);
-    excl_compress_results<<<num_blocks_first, threads_scan>>>
-            (block_results, (int*)in, length, hof, final_val, b);
-    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    cudaFree(final_val);
-    cudaFree(block_block_results);
-    return res;
-  }
-}
-
-extern "C"
-int fused_exclusive_scan_int(void* in, void* f, int length, int b, Pointer funcs, int funclen){
-  
-  scan_fun_int hof = (scan_fun_int)f;
-  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
-
-
-  int num_blocks_first = (length / threads_scan) + 1;
-  int* block_results;
-  int* dummy;
-  int* final_val;
-  cudaMalloc(&block_results, sizeof(int) * num_blocks_first);
-  cudaMalloc(&dummy, sizeof(int));
-  cudaMalloc(&final_val, sizeof(int));
-
-
-  scan_int_kernel_fused<<<num_blocks_first, threads_scan>>>
-          ((int*)in, block_results, hof, b, length, gpufuncs, funclen);
-  cudaFree(gpufuncs);
-  int res;
-  if(num_blocks_first == 1){
-    excl_compress_results<<<num_blocks_first, threads_scan>>>
-          (block_results, (int*)in, length, hof, final_val, b);
-    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    cudaFree(final_val);
-    return res;
-  }
-  else if(num_blocks_first <= 1024){
-    scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
-    excl_compress_results<<<num_blocks_first, threads_scan>>>
-            (block_results, (int*)in, length, hof, final_val, b);
-    cudaMemcpy(&res, final_val, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaDeviceSynchronize();
-    cudaFree(block_results);
-    cudaFree(dummy);
-    cudaFree(final_val);
-    return res;
-  }
-  else{
-    int leftover = (num_blocks_first / threads_scan) + 1;
-    int* block_block_results;
-    cudaMalloc(&block_block_results, sizeof(int) * leftover);
-    scan_int_kernel<<<leftover, threads_scan>>>
+    scan_intxint_kernel<<<leftover, threads_scan>>>
             (block_results, block_block_results, hof, b, num_blocks_first);
     serial_scan<<<1,1>>>(block_block_results, leftover, b, hof);
     compress_results<<<leftover, threads_scan>>>
@@ -614,7 +415,7 @@ int fused_exclusive_scan_int(void* in, void* f, int length, int b, Pointer funcs
 }
 
 __global__
-void filter_map(int* in, int* out1, int len, filter_fun_int f){
+void filter_map(int* in, int* out1, int len, filter_fun_intxint f){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if(idx < len){
     if(f(in[idx])){
@@ -625,9 +426,8 @@ void filter_map(int* in, int* out1, int len, filter_fun_int f){
     }
   }
 }
-
 __global__
-void squish(int* in, int* scanned, int* out, int length, filter_fun_int f){
+void squish(int* in, int* scanned, int* out, int length, filter_fun_intxint f){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   
   if(idx < length){
@@ -638,8 +438,8 @@ void squish(int* in, int* scanned, int* out, int length, filter_fun_int f){
 }
 
 extern "C"
-void* filter_int(void* arr, int length, void* f, Pointer outlen){
-  filter_fun_int hof = (filter_fun_int)f;
+void* filter_intxint(void* arr, int length, void* f, Pointer outlen){
+  filter_fun_intxint hof = (filter_fun_intxint)f;
   
   int blocks = (length / threads_filter) + 1;
     
@@ -653,8 +453,8 @@ void* filter_int(void* arr, int length, void* f, Pointer outlen){
   filter_map<<<blocks, threads_filter>>>((int*)arr, scanned, length, hof);
   
   //scan over the bits
-  reduce_fun_int add = (reduce_fun_int)gen_add_int();
-  int len = exclusive_scan_int(scanned, (void*)add, length, 0);
+  reduce_fun_intxint add = (reduce_fun_intxint)gen_add_intxint();
+  int len = exclusive_scan_intxint(scanned, (void*)add, length, 0);
 
   int* res;
   cudaMalloc(&res, sizeof(int) * len);
@@ -666,56 +466,8 @@ void* filter_int(void* arr, int length, void* f, Pointer outlen){
   return res;
 }
 
-
 __global__
-void filter_map_fused(int* in, int* out1, int len, filter_fun_int f, map_fun_int* funcs, int funclen){
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if(idx < len){
-    int a = in[idx];
-    a = apply_fuse(a, funcs, funclen);
-    in[idx] = a;
-    if(f(a)){
-      out1[idx] = 1;
-    }
-    else{
-      out1[idx] = 0;
-    }
-  }
-}
-
-extern "C"
-void* fused_filter_int(void* arr, int length, void* f, Pointer outlen, Pointer funcs, int funclen){
-  filter_fun_int hof = (filter_fun_int)f;
-  map_fun_int* gpufuncs = map_list_to_arr(funcs, funclen);
-  
-  int blocks = (length / threads_filter) + 1;
-    
-  // make buffer array
-
-  // this map could have been fused in with the scan with some 
-  // extra code copy pasta i didnt want to do
-
-  int* scanned;
-  cudaMalloc(&scanned, sizeof(int) * length);
-  filter_map_fused<<<blocks, threads_filter>>>((int*)arr, scanned, length, hof, gpufuncs, funclen);
-  
-  //scan over the bits
-  reduce_fun_int add = (reduce_fun_int)gen_add_int();
-  int len = exclusive_scan_int(scanned, (void*)add, length, 0);
-
-  int* res;
-  cudaMalloc(&res, sizeof(int) * len);
-
-  squish<<<blocks, threads_filter>>>((int*)arr, scanned, res, length, hof);
-  *(int*)outlen = len;
-  //cudaFree(bits);
-  cudaFree(gpufuncs);
-  cudaFree(scanned);
-  return res;
-}
-
-__global__
-void zipsquish(int* arr1, int* arr2, int* out, zipwith_fun_int f, int length){
+void zipsquish(int* arr1, int* arr2, int* out, zipwith_fun_intxint f, int length){
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
   if(idx < length){
@@ -724,9 +476,9 @@ void zipsquish(int* arr1, int* arr2, int* out, zipwith_fun_int f, int length){
 }
 
 extern "C"
-void* zipwith_int(void* arr1, void* arr2, void* f, int length){
+void* zipwith_intxint(void* arr1, void* arr2, void* f, int length){
 
-  zipwith_fun_int hof = (zipwith_fun_int)f;
+  zipwith_fun_intxint hof = (zipwith_fun_intxint)f;
   
   int* res;
   cudaMalloc(&res, sizeof(int) * length);
@@ -737,45 +489,4 @@ void* zipwith_int(void* arr1, void* arr2, void* f, int length){
   cudaDeviceSynchronize();
   return res;
 }
-
-__global__
-void zipsquish_fused(int* arr1, int* arr2, int* out, zipwith_fun_int f, int length, 
-                map_fun_int* funcs1, int funclen1, map_fun_int* funcs2, int funclen2){
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-
-  if(idx < length){
-    int a = arr1[idx];
-    int b = arr2[idx];
-    for(int i = 0;i < funclen1;i++){
-      a = funcs1[i](a);
-    }
-    arr1[idx] = a;
-    for(int i = 0;i < funclen2;i++){
-      b = funcs2[i](b);
-    }
-    arr2[idx] = b;
-
-    out[idx] = f(a, b);
-  }
-}
-
-extern "C"
-void* fused_zipwith_int(void* arr1, void* arr2, void* f, int length, Pointer funcs1, int funclen1, 
-                        Pointer funcs2, int funclen2){
-
-  zipwith_fun_int hof = (zipwith_fun_int)f;
-  map_fun_int* gpufuncs1 = map_list_to_arr(funcs1, funclen1);
-  map_fun_int* gpufuncs2 = map_list_to_arr(funcs2, funclen2);
-
-  int* res;
-  cudaMalloc(&res, sizeof(int) * length);
-
-  int blocks = (length / threads_filter) + 1;
-  zipsquish_fused<<<blocks, threads_filter>>>((int*)arr1, (int*)arr2, res, 
-                  hof, length, gpufuncs1, funclen1, gpufuncs2, funclen2);
-  
-  cudaFree(gpufuncs2);
-  cudaFree(gpufuncs1);
-  cudaDeviceSynchronize();
-  return res;
-}
+//Reduce - cite http://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf - another reduction algorithm choice
