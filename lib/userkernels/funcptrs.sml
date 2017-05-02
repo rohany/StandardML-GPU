@@ -5,12 +5,16 @@ struct
   val gen_add = _import "gen_add_int" public : unit -> MLton.Pointer.t;
   val gen_is_even = _import "gen_is_even_int" : unit -> MLton.Pointer.t;
   val gen_left = _import "gen_left_int" public : unit -> MLton.Pointer.t;
+  val gen_parens = _import "gen_paren_gen" public : unit -> MLton.Pointer.t;
+  val gen_max = _import "gen_max_int" public : unit -> MLton.Pointer.t;
   
   val identity = gen_identity ()
   val double = gen_double ()
   val add = gen_add () 
   val is_even = gen_is_even ()
   val left = gen_left()
+  val parens = gen_parens()
+  val max = gen_max()
   
 end
 

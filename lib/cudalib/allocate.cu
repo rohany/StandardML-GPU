@@ -74,6 +74,7 @@ void* initInt_gpu(int size, int b){
 
   int blocks = (size / 256) + 1;
   initwith_int<<<blocks, 256>>>((int*)dev_ptr, b, size);
+  cudaDeviceSynchronize();
   return dev_ptr;
 }
 

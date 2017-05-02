@@ -367,7 +367,6 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
           ((int*)in, block_results, hof, b, length);
 
   if(num_blocks_first == 1){
-    cudaDeviceSynchronize();
     cudaFree(block_results);
     cudaFree(dummy);
     return in;
@@ -375,7 +374,6 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
   else if(num_blocks_first <= 1024){
     scan_int_kernel<<<1, 1024>>>(block_results, dummy, hof, b, num_blocks_first);
     compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
-    cudaDeviceSynchronize();
     cudaFree(block_results);
     cudaFree(dummy);
     return in;
@@ -390,7 +388,6 @@ void* inclusive_scan_int(void* in, void* f, int length, int b){
     compress_results<<<leftover, threads_scan>>>
             (block_block_results, block_results, num_blocks_first, hof);
     compress_results<<<num_blocks_first, threads_scan>>>(block_results, (int*)in, length, hof);
-    cudaDeviceSynchronize();
     cudaFree(block_results);
     cudaFree(dummy);
     cudaFree(block_block_results);

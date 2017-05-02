@@ -23,3 +23,16 @@ void* gen_left_int(){
   cudaMemcpyFromSymbol(&local, left_dev_int, sizeof(reduce_fun_int));
   return (void*)local;
 }
+
+__device__ __inline__
+int max_int(int x, int y){
+  return x < y ? y : x;
+}
+__device__ reduce_fun_int max_dev_int = max_int;
+extern "C"
+void* gen_max_int(){
+  reduce_fun_int local;
+  cudaMemcpyFromSymbol(&local, max_dev_int, sizeof(reduce_fun_int));
+  return (void*)local;
+}
+
