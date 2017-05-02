@@ -10,7 +10,7 @@ struct
     let
       val (s, last) = Seq.scan (op +) 0 s1
     in
-      last = 0 andalso (Seq.reduce Int.max 0 s) >= 0
+      last = 0 andalso (Seq.reduce Int.min 0 s) >= 0
     end
   
   fun run_test size = 
@@ -31,7 +31,7 @@ struct
     let
       val (s, last) = GPUSeq.scan GPUINTLambdas.add 0 s2
     in
-      last = 0 andalso (GPUSeq.reduce GPUINTLambdas.max 0 s) >= 0
+      last = 0 andalso (GPUSeq.reduce GPUINTLambdas.min 0 s) >= 0
     end
 
   fun run_test size = 

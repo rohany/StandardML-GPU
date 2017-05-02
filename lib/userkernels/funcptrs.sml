@@ -7,6 +7,7 @@ struct
   val gen_left = _import "gen_left_int" public : unit -> MLton.Pointer.t;
   val gen_parens = _import "gen_paren_gen" public : unit -> MLton.Pointer.t;
   val gen_max = _import "gen_max_int" public : unit -> MLton.Pointer.t;
+  val gen_min = _import "gen_min_int" public : unit -> MLton.Pointer.t;
   
   val identity = gen_identity ()
   val double = gen_double ()
@@ -15,6 +16,7 @@ struct
   val left = gen_left()
   val parens = gen_parens()
   val max = gen_max()
+  val min = gen_min()
   
 end
 
