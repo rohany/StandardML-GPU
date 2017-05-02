@@ -1,5 +1,6 @@
 structure GPUINTLambdas = 
 struct
+
   val gen_identity = _import "gen_identity_int" public : unit -> MLton.Pointer.t;
   val gen_double = _import "gen_double_int" public : unit -> MLton.Pointer.t;
   val gen_add = _import "gen_add_int" public : unit -> MLton.Pointer.t;
@@ -17,11 +18,9 @@ struct
   val parens = gen_parens()
   val max = gen_max()
   val min = gen_min()
-  
-end
 
-structure GPUFLOATLambdas = 
-struct
-  open Real
-  val () = ()
+
+	val gen_multiply = _import "gen_multiply_int" public : unit -> MLton.Pointer.t;
+	val multiply = gen_multiply()
+
 end

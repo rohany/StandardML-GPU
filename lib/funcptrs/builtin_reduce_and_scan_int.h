@@ -53,3 +53,20 @@ void* gen_min_int(){
 
 }
 
+__device__
+int multiply_int(int x, int y){
+  return x * y;
+}
+
+__device__ reduce_fun_int multiply_int_dev = multiply_int;
+
+extern "C"
+void* gen_multiply_int(){
+
+	reduce_fun_int local;
+
+	cudaMemcpyFromSymbol(&local, multiply_int_dev, sizeof(reduce_fun_int));
+
+	return (void*)local;
+
+}

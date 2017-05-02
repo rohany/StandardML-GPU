@@ -3,7 +3,8 @@ local
   $(SML_LIB)/basis/mlton.mlb
   ../defs.mlb 
   ./kernels.sml
-  ./funcptrs.sml
+  ./intlambdas.sml
+  ./floatlambdas.sml
 in
   structure GPUKernels
   structure GPUINTLambdas
