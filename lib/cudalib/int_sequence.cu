@@ -27,9 +27,13 @@ map_fun_int* map_list_to_arr(void* funcs, int funclen){
   map_fun_int* ops = (map_fun_int*)funcs;
   
   map_fun_int* gpufuncs;
-  cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
+  if(funclen != 0){
 
-  cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
+    cudaMalloc(&gpufuncs, sizeof(map_fun_int) * funclen);
+
+    cudaMemcpy(gpufuncs, ops, sizeof(map_fun_int) * funclen, cudaMemcpyHostToDevice);
+
+  }
   
   return gpufuncs; 
 }
@@ -117,30 +121,35 @@ void map_force(void* in, int len, Pointer funcs, int funclen){
 
   cudaDeviceSynchronize();
   cudaFree(gpufuncs);
-  /*
-  cudaError_t err = cudaGetLastError();
-  printf("%s\n", cudaGetErrorString(err));
-  */
+
 }
 
-__inline__ __device__
+__forceinline__ __device__
 int warp_red_int(int t, reduce_fun_int f){
   int res = t;
 
-  #pragma unroll
-  for(int i = warpSize / 2;i > 0;i /= 2){
-    int a = __shfl_down(res, i);
-    res = f(res, a);
-    //res += a;
-  }
+  int a = __shfl_down(res, 16);
+  res = f(res, a);
+
+  a = __shfl_down(res, 8);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 4);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 2);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 1);
+  res = f(res, a);
+  
+  
   return res;
 }
 
-__inline__ __device__
+__forceinline__ __device__
 int reduce_block_int(int t, int b, reduce_fun_int f){
   
-  // assuming warp size is 32
-  // can fix later in the kernel call
   __shared__ int warp_reds[block_red_size_reduce];
 
   int warpIdx = threadIdx.x / warpSize;
@@ -173,7 +182,6 @@ void reduce_int_kernel(int* in, int* out, int size, int b, reduce_fun_int f){
   #pragma unroll
   for(int i = idx;i < size;i += blockDim.x * gridDim.x){
     sum = f(sum,in[i]);
-    //sum += in[i];
   }
   
   sum = reduce_block_int(sum, b, f);
@@ -190,7 +198,6 @@ extern "C"
 int reduce_int_shfl(void* arr, int size, int b, void* f){
 
   reduce_fun_int hof = (reduce_fun_int)f;
-  
 
   int numBlocks = (size / threads_reduce) + 1;
   void* res;
@@ -220,7 +227,6 @@ void reduce_int_kernel_fused(int* in, int* out, int size, int b,
     }
     in[i] = a;
     sum = f(sum,a);
-    //sum += in[i];
   }
   
   sum = reduce_block_int(sum, b, f);
@@ -230,7 +236,6 @@ void reduce_int_kernel_fused(int* in, int* out, int size, int b,
   }
   
 }
-
 
 //FUSED REDUCE 
 extern "C"
@@ -269,13 +274,28 @@ int warp_scan_shfl(int b, scan_fun_int f, int* out, int idx, int length){
   else{
     res = b;
   }
-  #pragma unroll
-  for(int i = 1;i < warpSize;i *= 2){
-    int a = __shfl_up(res, i);
-    if(i <= warpIdx){
-      res = f(a, res);
-    }
+
+  int a = __shfl_up(res, 1);
+  if(1 <= warpIdx){
+    res = f(a,res);
   }
+  a = __shfl_up(res, 2);
+  if(2 <= warpIdx){
+    res = f(a,res);
+  }
+  a = __shfl_up(res, 4);
+  if(4 <= warpIdx){
+    res = f(a,res);
+  }
+  a = __shfl_up(res, 8);
+  if(8 <= warpIdx){
+    res = f(a,res);
+  }
+  a = __shfl_up(res, 16);
+  if(16 <= warpIdx){
+    res = f(a,res);
+  }
+
   if(idx < length){
     out[idx] = res;
   }

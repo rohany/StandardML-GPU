@@ -80,12 +80,22 @@ void* map_float(void* inarr, void* f, int size){
 __inline__ __device__
 float warp_red_float(float t, reduce_fun_float f){
   float res = t;
+  
+  float a = __shfl_down(res, 16);
+  res = f(res, a);
 
-  #pragma unroll
-  for(int i = warpSize / 2;i > 0;i /= 2){
-    float a = __shfl_down(res, i);
-    res = f(res, a);
-  }
+  a = __shfl_down(res, 8);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 4);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 2);
+  res = f(res, a);
+  
+  a = __shfl_down(res, 1);
+  res = f(res, a);
+  
   return res;
 }
 
@@ -169,13 +179,32 @@ float warp_scan_shfl_float(float b, scan_fun_float f, float* out, int idx, int l
   else{
     res = b;
   }
-  #pragma unroll
-  for(int i = 1;i < warpSize;i *= 2){
-    float a = __shfl_up(res, i);
-    if(i <= warpIdx){
-      res = f(a, res);
-    }
+
+  float a = __shfl_up(res, 1);
+  if(1 <= warpIdx){
+    res = f(a, res);
   }
+
+  a = __shfl_up(res, 2);
+  if(2 <= warpIdx){
+    res = f(a, res);
+  }
+
+  a = __shfl_up(res, 4);
+  if(4 <= warpIdx){
+    res = f(a, res);
+  }
+
+  a = __shfl_up(res, 8);
+  if(8 <= warpIdx){
+    res = f(a, res);
+  }
+
+  a = __shfl_up(res, 16);
+  if(16 <= warpIdx){
+    res = f(a, res);
+  }
+
   if(idx < length){
     out[idx] = res;
   }
@@ -300,8 +329,6 @@ void* inclusive_scan_float(void* in, void* f, int length, float b){
     return in;
   }
 }
-
-// FLOAT CLEANING DONE TILL HERE
 
 //BEGIN EXCLUSIVE SCAN
 
