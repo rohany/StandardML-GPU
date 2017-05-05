@@ -30,9 +30,9 @@ void tabulate_int_tuple_kernel(int* arr_1, int* arr_2, int len, tabulate_fun_int
     return;
   }
 
-  std::pair<int, int> T = f(idx);
-  arr_1[idx] = T.first;
-  arr_2[idx] = T.second;
+  int2 T = f(idx);
+  arr_1[idx] = T.x;
+  arr_2[idx] = T.y;
 }
 
 extern "C"
@@ -58,9 +58,9 @@ void map_int_tuple_kernel(int* arr_1, int* arr_2, int len, map_fun_int_tuple f){
     return;
   }
 
-  std::pair<int, int> tuple = f(arr_1[idx],arr_2[idx]);
-  arr_1[idx] = tuple.first;
-  arr_2[idx] = tuple.second;
+  int2 tuple = f(arr_1[idx],arr_2[idx]);
+  arr_1[idx] = tuple.x;
+  arr_2[idx] = tuple.y;
 }
 
 extern "C"
@@ -74,24 +74,24 @@ void map_int_tuple(void* inarr_1, void* inarr_2, void* f, int size){
 
 
 __inline__ __device__
-std::pair<int,int> warp_red_int_tuple(int t_1, int t_2, reduce_fun_int_tuple f){
+int2 warp_red_int_tuple(int t_1, int t_2, reduce_fun_int_tuple f){
   int res_1 = t_1;
   int res_2 = t_2;
-  std::pair<int, int> res;
+  int2 res;
   #pragma unroll
   for(int i = 16;i > 0;i /= 2){
     int a1 = __shfl_down(res_1, i);
     int a2 = __shfl_down(res_2, i);
     res = f(res_1, res_2, a1, a2);
-    res_1 = res.first;
-    res_2 = res.second;
+    res_1 = res.x;
+    res_2 = res.y;
 
   }
   return res;
 }
 
 __inline__ __device__
-std::pair<int,int> reduce_block_int_tuple(int t_1, int t_2, int b_1, int b_2, reduce_fun_int_tuple f){
+int2 reduce_block_int_tuple(int t_1, int t_2, int b_1, int b_2, reduce_fun_int_tuple f){
   
   // assuming warp size is 32
   // can fix later in the kernel call
@@ -102,11 +102,11 @@ std::pair<int,int> reduce_block_int_tuple(int t_1, int t_2, int b_1, int b_2, re
 
   int localIdx = threadIdx.x % warpSize;
 
-  std::pair<int,int> inter_res = warp_red_int_tuple(t_1, t_2, f);
+  int2 inter_res = warp_red_int_tuple(t_1, t_2, f);
   
   if(localIdx == 0){
-    warp_reds_1[warpIdx] = inter_res.first;
-    warp_reds_2[warpIdx] = inter_res.second;
+    warp_reds_1[warpIdx] = inter_res.x;
+    warp_reds_2[warpIdx] = inter_res.y;
   }
 
   __syncthreads();
@@ -114,7 +114,7 @@ std::pair<int,int> reduce_block_int_tuple(int t_1, int t_2, int b_1, int b_2, re
   int broadval2_1 = (threadIdx.x < block_red_size_reduce) ? warp_reds_1[localIdx] : b_1;
   int broadval2_2 = (threadIdx.x < block_red_size_reduce) ? warp_reds_2[localIdx] : b_2;
 
-  std::pair<int, int> res = std::make_pair(b_1, b_2);
+  int2 res = make_int2(b_1, b_2);
   if(warpIdx == 0){
     res = warp_red_int_tuple(broadval2_1, broadval2_2, f);
   }
@@ -128,20 +128,20 @@ void reduce_int_tuple_kernel(int* in_1, int* in_2, int* out_1, int* out_2, int s
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   int sum_1 = b_1;
   int sum_2 = b_2;
-  std::pair<int, int> sum;
+  int2 sum;
   
   #pragma unroll
   for(int i = idx; i < size; i += blockDim.x * gridDim.x){
     sum = f(sum_1, sum_2, in_1[i], in_2[i]);
-    sum_1 = sum.first;
-    sum_2 = sum.second;
+    sum_1 = sum.x;
+    sum_2 = sum.y;
   }
   
   sum = reduce_block_int_tuple(sum_1, sum_2, b_1, b_2, f);
   
   if(threadIdx.x == 0){
-    out_1[blockIdx.x] = sum.first;
-    out_2[blockIdx.x] = sum.second;
+    out_1[blockIdx.x] = sum.x;
+    out_2[blockIdx.x] = sum.y;
   }
   
 }
@@ -175,34 +175,34 @@ void reduce_int_tuple_shfl(void* arr_1, void* arr_2, int size, int b_1, int b_2,
 //BEGIN SCAN
 
 __device__ __inline__
-std::pair<int, int> warp_scan_shfl(int b_1, int b_2, scan_fun_int_tuple f, int* out_1, int* out_2, int idx, int length){
+int2 warp_scan_shfl(int b_1, int b_2, scan_fun_int_tuple f, int* out_1, int* out_2, int idx, int length){
   int warpIdx = threadIdx.x % warpSize;
-  std::pair<int, int> res;
+  int2 res;
   if(idx < length){
-    res.first = out_1[idx];
-    res.second = out_2[idx];
+    res.x = out_1[idx];
+    res.y = out_2[idx];
   }
   else{
-    res.first = b_1;
-    res.second = b_2;
+    res.x = b_1;
+    res.y = b_2;
   }
   #pragma unroll
   for(int i = 1;i < warpSize;i *= 2){
-    int a_1 = __shfl_up(res.first, i);
-    int a_2 = __shfl_up(res.second, i);
+    int a_1 = __shfl_up(res.x, i);
+    int a_2 = __shfl_up(res.y, i);
     if(i <= warpIdx){
-      res = f(a_1, a_2, res.first, res.second);
+      res = f(a_1, a_2, res.x, res.y);
     }
   }
   if(idx < length){
-    out_1[idx] = res.first;
-    out_2[idx] = res.second;
+    out_1[idx] = res.x;
+    out_2[idx] = res.y;
   }
   return res;
 }
 
 __device__ __inline__
-std::pair<int, int> block_scan(int* in_1, int* in_2, int length, scan_fun_int_tuple f, int b_1, int b_2){
+int2 block_scan(int* in_1, int* in_2, int length, scan_fun_int_tuple f, int b_1, int b_2){
 
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -213,16 +213,16 @@ std::pair<int, int> block_scan(int* in_1, int* in_2, int length, scan_fun_int_tu
 
   int localIdx= threadIdx.x % warpSize;
 
-  std::pair<int,int> inter_res = warp_scan_shfl(b_1, b_2, f, in_1, in_2, idx, length);
+  int2 inter_res = warp_scan_shfl(b_1, b_2, f, in_1, in_2, idx, length);
 
   if(localIdx == warpSize - 1){
-    warp_reds_1[warpIdx] = inter_res.first;
-    warp_reds_2[warpIdx] = inter_res.second;
+    warp_reds_1[warpIdx] = inter_res.x;
+    warp_reds_2[warpIdx] = inter_res.y;
   }
 
   __syncthreads();
 
-  std::pair<int, int> res = std::make_pair(b_1, b_2);
+  int2 res = make_int2(b_1, b_2);
   if(warpIdx == 0){
     res = warp_scan_shfl(b_1, b_2, f, warp_reds_1, warp_reds_2, localIdx, block_red_size_scan);
   }
@@ -230,10 +230,10 @@ std::pair<int, int> block_scan(int* in_1, int* in_2, int length, scan_fun_int_tu
   __syncthreads();
 
   if(idx < length && warpIdx != 0){
-    std::pair<int,int> t = 
+    int2 t = 
         f(warp_reds_1[warpIdx - 1], warp_reds_2[warpIdx - 1], in_1[idx], in_2[idx]);
-    in_1[idx] = t.first;
-    in_2[idx] = t.second;
+    in_1[idx] = t.x;
+    in_2[idx] = t.y;
   }
 
   //warp number 0, lane number block_red_size_scan 
@@ -247,10 +247,10 @@ __global__
 void scan_int_tuple_kernel(int* in_1, int* in_2, int* block_results1, int* block_results2, 
                           scan_fun_int_tuple f, int b1, int b2, int length){
   
-  std::pair<int,int> block_res = block_scan(in_1, in_2, length, f, b1, b2);
+  int2 block_res = block_scan(in_1, in_2, length, f, b1, b2);
   if(threadIdx.x == block_red_size_scan - 1){
-    block_results1[blockIdx.x] = block_res.first;
-    block_results2[blockIdx.x] = block_res.second;
+    block_results1[blockIdx.x] = block_res.x;
+    block_results2[blockIdx.x] = block_res.y;
   }
 }
 __global__
@@ -263,10 +263,10 @@ void compress_results(int* block_res1, int* block_res2, int* out1, int* out2,
   }
   else{
     if(idx < len){
-      std::pair<int, int> t = 
+      int2 t = 
         f(block_res1[blockIdx.x - 1], block_res2[blockIdx.x - 1], out1[idx], out2[idx]);
-      out1[idx] = t.first;
-      out2[idx] = t.second;
+      out1[idx] = t.x;
+      out2[idx] = t.y;
     }
   }
 }
@@ -274,12 +274,12 @@ void compress_results(int* block_res1, int* block_res2, int* out1, int* out2,
 //this is terrible
 __global__
 void serial_scan(int* bres_1, int* bres_2, int len, int b_1, int b_2, scan_fun_int_tuple f){
-  std::pair<int,int> res = std::make_pair(b_1, b_2);
+  int2 res = make_int2(b_1, b_2);
   #pragma unroll
   for(int i = 0; i < len; i++){
-    res = f(res.first, res.second, bres_1[i], bres_2[i]);
-    bres_1[i] = res.first;
-    bres_2[i] = res.second;
+    res = f(res.x, res.y, bres_1[i], bres_2[i]);
+    bres_1[i] = res.x;
+    bres_2[i] = res.y;
   }
 }
 
@@ -358,34 +358,34 @@ void excl_compress_results(int* block_res_1, int* block_res_2, int* out_1, int* 
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if(idx >= len) return;
   if(blockIdx.x != 0){
-    std::pair<int, int> t = f(block_res_1[blockIdx.x - 1], block_res_2[blockIdx.x - 1],
+    int2 t = f(block_res_1[blockIdx.x - 1], block_res_2[blockIdx.x - 1],
                             out_1[idx], out_2[idx]);
-    out_1[idx] = t.first;
-    out_2[idx] = t.second;
+    out_1[idx] = t.x;
+    out_2[idx] = t.y;
   }
   __syncthreads();
-  std::pair<int, int> toWrite = std::make_pair(b_1, b_2);
+  int2 toWrite = make_int2(b_1, b_2);
   if(threadIdx.x == 0){
     if(idx == 0){
-      toWrite.first = b_1;
-      toWrite.second = b_2;
+      toWrite.x = b_1;
+      toWrite.y = b_2;
     }
     else{
-      toWrite.first = block_res_1[blockIdx.x - 1];
-      toWrite.second = block_res_2[blockIdx.x - 1];
+      toWrite.x = block_res_1[blockIdx.x - 1];
+      toWrite.y = block_res_2[blockIdx.x - 1];
     }
   }
   else{
-    toWrite.first = out_1[idx - 1];
-    toWrite.second = out_2[idx - 1];
+    toWrite.x = out_1[idx - 1];
+    toWrite.y = out_2[idx - 1];
   }
   if(idx == len - 1){
     final[0] = out_1[idx];
     final[1] = out_2[idx];
   }
   __syncthreads();
-  out_1[idx] = toWrite.first;
-  out_2[idx] = toWrite.second;
+  out_1[idx] = toWrite.x;
+  out_2[idx] = toWrite.y;
 }
 
 extern "C"
@@ -406,36 +406,36 @@ void exclusive_scan_int_tuple(void* in_1, void* in_2, void* f, int length, int b
 
   scan_int_tuple_kernel<<<num_blocks_first, threads_scan>>>
           ((int*)in_1, (int*)in_2, block_results_1, block_results_2, hof, b_1, b_2, length);
-  std::pair<int,int> res;
+  int2 res;
   if(num_blocks_first == 1){
     excl_compress_results<<<num_blocks_first, threads_scan>>>
           (block_results_1, block_results_2, (int*)in_1, (int*)in_2, length, hof, final_val, b_1, b_2);
-    cudaMemcpy(&res.first, final_val, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&res.second, final_val+1, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&res.x, final_val, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&res.y, final_val+1, sizeof(int), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     cudaFree(block_results_1);
     cudaFree(block_results_2);
     cudaFree(dummy_1);
     cudaFree(dummy_2);
     cudaFree(final_val);
-    *(int*)out_1 = res.first;
-    *(int*)out_2 = res.second;
+    *(int*)out_1 = res.x;
+    *(int*)out_2 = res.y;
   }
   else if(num_blocks_first <= 1024){
     scan_int_tuple_kernel<<<1, 1024>>>(block_results_1, block_results_2, dummy_1, dummy_2, hof, b_1, b_2, num_blocks_first);
     excl_compress_results<<<num_blocks_first, threads_scan>>>
             (block_results_1, block_results_2, (int*)in_1, (int*)in_2, 
              length, hof, final_val, b_1, b_2);
-    cudaMemcpy(&res.first, final_val, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&res.second, final_val+1, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&res.x, final_val, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&res.y, final_val+1, sizeof(int), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     cudaFree(block_results_1);
     cudaFree(block_results_2);
     cudaFree(dummy_1);
     cudaFree(dummy_2);
     cudaFree(final_val);
-    *(int*)out_1 = res.first;
-    *(int*)out_2 = res.second;
+    *(int*)out_1 = res.x;
+    *(int*)out_2 = res.y;
   }
   else{
     int leftover = (num_blocks_first / threads_scan) + 1;
@@ -458,8 +458,8 @@ void exclusive_scan_int_tuple(void* in_1, void* in_2, void* f, int length, int b
     cudaFree(final_val);
     cudaFree(block_block_results_1);
     cudaFree(block_block_results_2);
-    *(int*)out_1 = res.first;
-    *(int*)out_2 = res.second;
+    *(int*)out_1 = res.x;
+    *(int*)out_2 = res.y;
   }
 }
 
@@ -530,11 +530,11 @@ void zipsquish(int* arr1_1, int* arr2_1, int* arr1_2, int* arr2_2, int* out_1, i
 >>>>>>> 4e775e2bfec8033ee7238553b36a9b854b81fc01
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
-  std::pair<int,int> out;
+  int2 out;
   if(idx < length){
     out = f(arr1_1[idx], arr2_1[idx], arr1_2[idx], arr2_2[idx]);
-    out_1[idx] = out.first;
-    out_2[idx] = out.second;
+    out_1[idx] = out.x;
+    out_2[idx] = out.y;
   }
 }
 
