@@ -5,6 +5,7 @@
 #include "../funcptrs/builtin_filter_int.h"
 #include "../funcptrs/builtin_reduce_and_scan_int.h"
 #include "../funcptrs/builtin_tabulate_and_map_int.h"
+
 //User defined function pointers
 #include "../funcptrs/user_tabulate_int.h"
 #include "../funcptrs/user_map_int.h"
