@@ -1,12 +1,17 @@
 #include "../headers/export.h"
 #include "../headers/hofs.h"
-#include "../funcptrs/user_map_int_tuple.h"
+
+//Builtin function pointers
+#include "../funcptrs/builtin_filter_int_tuple.h"
 #include "../funcptrs/builtin_reduce_and_scan_int_tuple.h"
+#include "../funcptrs/builtin_tabulate_and_map_int_tuple.h"
+
+#include "../funcptrs/user_map_int_tuple.h"
 #include "../funcptrs/user_reduce_int_tuple.h"
 #include "../funcptrs/user_scan_int_tuple.h"
-#include "../funcptrs/builtin_filter_int_tuple.h"
 #include "../funcptrs/user_filter_int_tuple.h"
 #include "../funcptrs/user_zipwith_int_tuple.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <utility>
