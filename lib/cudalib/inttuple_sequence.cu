@@ -31,8 +31,9 @@ void tabulate_int_tuple_kernel(int* arr_1, int* arr_2, int len, tabulate_fun_int
     return;
   }
 
-  arr_1[idx] = f(idx);
-  arr_2[idx] = f(idx);
+  std::pair<int, int> T = f(idx);
+  arr_1[idx] = T.first;
+  arr_2[idx] = T.second;
 }
 
 extern "C"
@@ -44,7 +45,7 @@ void* tabulate_int_tuple(int size, void* f, Pointer dev_ptr_1, Pointer dev_ptr_1
   cudaMalloc(&(void*)dev_ptr_2, sizeof(int) * size);
 
   int blockNum = (size / 256) + 1;
-  tabulate_int_tuple_kernel<<<blockNum, 256>>>((int*)dev_ptr_1, (int*)dev_ptr_2, size, hof);
+  tabulate_int_tuple_kernel<<<blockNum, 256>>>(*(int*)dev_ptr_1, *(int*)dev_ptr_2, size, hof);
   cudaDeviceSynchronize();
 
 }
