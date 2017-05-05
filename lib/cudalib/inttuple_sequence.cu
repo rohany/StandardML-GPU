@@ -36,18 +36,16 @@ void tabulate_int_tuple_kernel(int* arr_1, int* arr_2, int len, tabulate_fun_int
 }
 
 extern "C"
-void* tabulate_int_tuple(int size, void* f){
+void* tabulate_int_tuple(int size, void* f, Pointer dev_ptr_1, Pointer dev_ptr_1){
   
   tabulate_fun_int_tuple hof = (tabulate_fun_int_tuple)f;
   
-  void* dev_ptr_1, dev_ptr_2;
-  cudaMalloc(&dev_ptr_1, sizeof(int) * size);
-  cudaMalloc(&dev_ptr_2, sizeof(int) * size);
+  cudaMalloc(&(void*)dev_ptr_1, sizeof(int) * size);
+  cudaMalloc(&(void*)dev_ptr_2, sizeof(int) * size);
 
   int blockNum = (size / 256) + 1;
-  tabulate_int_tuple_kernel<<<blockNum, 256>>>((int*)dev_ptr_2, (int*)dev_ptr_2 size, hof);
+  tabulate_int_tuple_kernel<<<blockNum, 256>>>((int*)dev_ptr_1, (int*)dev_ptr_2, size, hof);
   cudaDeviceSynchronize();
-  return dev_ptr;
 
 }
 
