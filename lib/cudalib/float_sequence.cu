@@ -1,15 +1,19 @@
 #include "../headers/export.h"
 #include "../headers/hofs.h"
-// TODO : change these to the float versions
-//#include "../funcptrs/builtin_tabulate_and_map_int.h"
-//#include "../funcptrs/user_tabulate_int.h"
-//#include "../funcptrs/user_map_int.h"
+
+//Builtin function pointers
+#include "../funcptrs/builtin_tabulate_and_map_float.h"
 #include "../funcptrs/builtin_reduce_and_scan_float.h"
-//#include "../funcptrs/user_reduce_int.h"
-//#include "../funcptrs/user_scan_int.h"
-//#include "../funcptrs/builtin_filter_int.h"
-//#include "../funcptrs/user_filter_int.h"
-//#include "../funcptrs/user_zipwith_int.h"
+#include "../funcptrs/builtin_filter_float.h"
+
+//User defined function pointers
+#include "../funcptrs/user_tabulate_float.h"
+#include "../funcptrs/user_map_float.h"
+#include "../funcptrs/user_reduce_float.h"
+#include "../funcptrs/user_scan_float.h"
+#include "../funcptrs/user_filter_float.h"
+#include "../funcptrs/user_zipwith_float.h"
+
 #include <stdio.h>
 #include <time.h>
 

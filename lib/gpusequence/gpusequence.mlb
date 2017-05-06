@@ -5,10 +5,12 @@ local
   ../gpuarray/gpuarray.mlb
   ../ctypes/ctypes.mlb
   ./gpusequenceint.sml
+  ./gpusequenceinttuple.sml
   ./gpusequencefloat.sml
   ./fusedgpusequenceint.sml
 in
   structure INTGPUSequence
+  structure INTTUPLEGPUSequence
   structure FLOATGPUSequence
   structure FusedINTGPUSequence
 end
