@@ -12,4 +12,4 @@ sudo apt-get install mlton
 Follow the Nvidia CUDA setup guide to install CUDA. Then head over to the tests directory, and make sure
 that cuda path in the Makefiles is the same as the path to your installation. 
 
-Then just run make, './<executable> <input size>`, and see the speedups!
+Then just run make, `./<executable> <input size>`, and see the speedups!
