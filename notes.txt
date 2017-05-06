@@ -1,5 +1,0 @@
-make sure to add the mlton.mlb file to the compilation
-
-to compile, use the following flags :
-mlton -default-ann 'allowFFI true' -link-opt '-rdynamic -L/opt/cuda/lib64/ -lcudart -lstdc++' <ml files> <gpu files>
-

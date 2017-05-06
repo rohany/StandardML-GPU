@@ -23,3 +23,50 @@ void* gen_left_int(){
   cudaMemcpyFromSymbol(&local, left_dev_int, sizeof(reduce_fun_int));
   return (void*)local;
 }
+
+__device__ __inline__
+int max_int(int x, int y){
+  return x < y ? y : x;
+}
+__device__ reduce_fun_int max_dev_int = max_int;
+extern "C"
+void* gen_max_int(){
+  reduce_fun_int local;
+  cudaMemcpyFromSymbol(&local, max_dev_int, sizeof(reduce_fun_int));
+  return (void*)local;
+}
+__device__
+int min_int(int x, int y){
+  return x < y ? x : y;
+}
+
+__device__ reduce_fun_int min_int_dev = min_int;
+
+extern "C"
+void* gen_min_int(){
+
+	reduce_fun_int local;
+
+	cudaMemcpyFromSymbol(&local, min_int_dev, sizeof(reduce_fun_int));
+
+	return (void*)local;
+
+}
+
+__device__
+int multiply_int(int x, int y){
+  return x * y;
+}
+
+__device__ reduce_fun_int multiply_int_dev = multiply_int;
+
+extern "C"
+void* gen_multiply_int(){
+
+	reduce_fun_int local;
+
+	cudaMemcpyFromSymbol(&local, multiply_int_dev, sizeof(reduce_fun_int));
+
+	return (void*)local;
+
+}

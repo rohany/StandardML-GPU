@@ -24,3 +24,20 @@ void* gen_double_int(){
   cudaMemcpyFromSymbol(&local, double_int_dev, sizeof(tabulate_fun_int));
   return (void*)local;
 }
+
+__device__
+int paren_gen(int i){
+  if(i % 2 == 0){
+    return 1;
+  }
+  else{
+    return -1;
+  }
+}
+__device__ tabulate_fun_int paren_gen_int_dev = paren_gen;
+extern "C"
+void* gen_paren_gen(){
+  tabulate_fun_int local;
+  cudaMemcpyFromSymbol(&local, paren_gen_int_dev, sizeof(tabulate_fun_int));
+  return (void*)local;
+}
