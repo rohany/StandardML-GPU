@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef HOFS_H
 #define HOFS_H
 typedef int (*tabulate_fun_int)(int x);

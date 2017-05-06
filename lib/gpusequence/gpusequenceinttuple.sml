@@ -22,13 +22,14 @@ struct
     _import "exclusive_scan_int_tuple" public : 
     MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int * int * int ref *
     int ref -> unit;
-  val filter_cuda = 
+  (*val filter_cuda = 
     _import "filter_intxint" public : 
     MLton.Pointer.t * MLton.Pointer.t * int * MLton.Pointer.t * 
     MLton.Pointer.t ref * MLton.Pointer.t ref * int ref -> unit;
   val zipwith_cuda = 
     _import "zipwith_intxint" public : 
-    MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int -> MLton.Pointer.t;
+    MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int ->
+    MLton.Pointer.t;*)
 
   (* fun all b n = initInt n b *)
 
@@ -83,7 +84,7 @@ struct
     in
       (a1, a2, n)
     end
-  
+  (*)
   fun filter p (a1, a2, n) = 
     let
       val o1 = ref(MLton.Pointer.null)
@@ -92,7 +93,7 @@ struct
       val () = filter_cuda(a1, a2, n, p, o1, o2, outlen)
     in
       (!o1, !o2, !outlen)
-    end
+    end*)
   (*)
   (* requires both have the same length *)
   fun zipwith f (a1, n, _) (a2, _, _) =
