@@ -1,13 +1,12 @@
 #include "../headers/export.h"
 #include "../headers/hofs.h"
-/*#include "../funcptrs/user_tabulate_int_tuple.h"
 #include "../funcptrs/user_map_int_tuple.h"
 #include "../funcptrs/builtin_reduce_and_scan_int_tuple.h"
 #include "../funcptrs/user_reduce_int_tuple.h"
 #include "../funcptrs/user_scan_int_tuple.h"
 #include "../funcptrs/builtin_filter_int_tuple.h"
 #include "../funcptrs/user_filter_int_tuple.h"
-#include "../funcptrs/user_zipwith_int_tuple.h"*/
+#include "../funcptrs/user_zipwith_int_tuple.h"
 #include <stdio.h>
 #include <time.h>
 #include <utility>
@@ -514,8 +513,8 @@ void* filter_int_tuple(void* arr_1, void* arr_2, int length, void* f, Pointer ou
   cudaMemcpyFromSymbol(&add, add_devl_int, sizeof(reduce_fun_int));
   int len = exclusive_scan_int(scanned, (void*)add, length, 0);
 
-  cudaMalloc(out_1, sizeof(int) * len);
-  cudaMalloc(out_2, sizeof(int) * len);
+  cudaMalloc((int*)out_1, sizeof(int) * len);
+  cudaMalloc((int*)out_2, sizeof(int) * len);
 
   squish<<<blocks, threads_filter>>>((int*)arr_1, (int*)arr_2, scanned, out_1, out_2, length, hof);
   *(int*)outlen = len;
@@ -524,27 +523,33 @@ void* filter_int_tuple(void* arr_1, void* arr_2, int length, void* f, Pointer ou
 
 
 __global__
+<<<<<<< HEAD
 void zipsquish(int* arr1, int* arr2, int* out, zipwith_fun_int_tuple f, int length){
+=======
+void zipsquish(int* arr1_1, int* arr2_1, int* arr1_2, int* arr2_2, int* out_1, int* out_2, zipwith_fun_int_tuple f, int length){
+>>>>>>> 4e775e2bfec8033ee7238553b36a9b854b81fc01
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
+  std::pair<int,int> out;
   if(idx < length){
-    out[idx] = f(arr1[idx], arr2[idx]);
+    out = f(arr1_1[idx], arr2_1[idx], arr1_2[idx], arr2_2[idx]);
+    out_1[idx] = out.first;
+    out_2[idx] = out.second;
   }
 }
 
 extern "C"
-void* zipwith_intxint(void* arr1, void* arr2, void* f, int length){
+void zipwith_int_tuple(int* arr1_1, int* arr2_1, int* arr1_2, int* arr2_2, void* f, int length, Pointer out_1, Pointer out_2){
 
-  zipwith_fun_intxint hof = (zipwith_fun_intxint)f;
+  zipwith_fun_int_tuple hof = (zipwith_fun_int_tuple)f;
   
-  int* res;
-  cudaMalloc(&res, sizeof(int) * length);
+  cudaMalloc((int*)out_1, sizeof(int) * len);
+  cudaMalloc((int*)out_2, sizeof(int) * len);
 
   int blocks = (length / threads_filter) + 1;
-  zipsquish<<<blocks, threads_filter>>>((int*)arr1, (int*)arr2, res, hof, length);
+  zipsquish<<<blocks, threads_filter>>>((int*)arr1_1, (int*)arr2_1, (int*)arr1_2, (int*)arr2_2, (int*)out_1, (int*)out_2, hof, length);
 
   cudaDeviceSynchronize();
-  return res;
 }
 */
 //Reduce - cite http://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf - another reduction algorithm choice
