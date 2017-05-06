@@ -1,4 +1,4 @@
-structure INTGPUSequence = 
+structure INTTUPLEGPUSequence = 
 struct
   
   open GPUArray
@@ -20,7 +20,7 @@ struct
     MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int * int * int -> unit;
   val excl_scan_cuda = 
     _import "exclusive_scan_int_tuple" public : 
-    MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int * int * int ref *
+    MLton.Pointer.t * MLton.Pointer.t * MLton.Pointer.t * int * int * int * int ref *
     int ref -> unit;
   (*val filter_cuda = 
     _import "filter_intxint" public : 
@@ -83,6 +83,17 @@ struct
       val () = incl_scan_cuda(a1, a2, f, n, b1, b2)
     in
       (a1, a2, n)
+    end
+  
+  fun toArray (a1, a2, n) = 
+    let
+      val ga1 = (a1, n, CTYPES.CINT)
+      val ga2 = (a2, n, CTYPES.CINT)
+      val ha1 = GPUArray.toIntArray ga1
+      val ha2 = GPUArray.toIntArray ga2
+      val out = Array.tabulate(n, fn i => (Array.sub(ha1, i), Array.sub(ha2, i)))
+    in
+      out
     end
   (*)
   fun filter p (a1, a2, n) = 
