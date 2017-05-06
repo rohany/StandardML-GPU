@@ -3,9 +3,13 @@ Adding fast CUDA bindings to Standard ML
 
 For more information, check out our website at https://rohany.github.io/StandardML-GPU
 
-For quick usage, compile your .mlb file with the following : 
+To see SML-GPU in action, clone the repository with `git clone https://github.com/rohany/StandardML-GPU/`.
 
+Install the dependencies 
 ~~~
-mlton -default-ann 'allowFFI true' -link-opt 'rdynamic -L/<path to your cuda install>' -lcudart -lstdc++' .mlb file <path to library gpublob.o>
+sudo apt-get install mlton
 ~~~
+Follow the Nvidia CUDA setup guide to install CUDA. Then head over to the tests directory, and make sure
+that cuda path in the Makefiles is the same as the path to your installation. 
 
+Then just run make, './<executable> <input size>`, and see the speedups!
