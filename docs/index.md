@@ -47,7 +47,7 @@ However, this really isn't too fair of a test. To get a real taste for the accel
 our library offers, compare our run-time speed to that of Thrust, where a similiar style of
 code can be written, albeit in C. 
 
-# Brandon add graphs here
+# Comparing performance of SML libraries 
 <iframe width="800" height="800" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 
 As we can see, our performance is equal to Thrust on smaller inputs, and beats out Thrust on larger 
