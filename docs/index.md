@@ -18,7 +18,7 @@ using Standard ML, and with our GPU library. The algorithm computes a prefix sum
 across the input sequence, and then checks to make sure element at the end is a 0, and
 the sum never drops below zero along the prefix sum. 
 
-Standard ML
+### Standard ML
 ~~~~ocaml
 fun match_parens s = 
   let
@@ -27,13 +27,13 @@ fun match_parens s =
     last = 0 andalso (Seq.reduce Int.min 0 s') >= 0)
   end
 ~~~~
-Standard ML with GPU
+### Standard ML with GPU
 ~~~~ocaml
 fun match_parens s = 
   let
     val (s', last) = GPUSeq.scanIncl Lambdas.add 0 s
   in
-    last = 0 andalso (GPUSeq.reduce Lambads.min 0 s') >= 0)
+    last = 0 andalso (GPUSeq.reduce Lambdas.min 0 s') >= 0)
   end
 ~~~~
 
@@ -80,12 +80,35 @@ C to get the same kind of abstraction.
 
 Allowing for an interface between Standard ML and the GPU has a number of difficulties, which 
 relate to the restricted nature of GPU computation, in contrast to the lack of restrictions in 
-terms of memory management and syntactic constructs of Standard ML. To be specific : 
+terms of memory management and syntactic constructs of Standard ML. To be specific the difficulties lie in : 
 1. Providing an intuitive abstraction for memory management for device memory, since Standard ML does not have manual memory management.
 2. Providing a flexible interface (as much polymorphism, higher order functions as possible) that allows users to write mostly SML, and more functional style programs.
 3. Implementing very efficient primitives that allow for arbitrary user-defined functions.
-4. Change the structure of parallel function programs to allow for more efficient use of hardware.
+4. Work around the structure of parallel function programs to allow for more efficient use of hardware.
 
+## Abstraction
+
+## Implementation
+
+### Memory Management
+
+### Primitives
+
+### Types and Tuples
+
+### Fusing
+
+## Performance and Analysis 
+
+### Baseline Primitive Performance
+
+### Fused Primitive Performance
+
+## Conclusion
+
+## Work Distribution
+
+Both partners did equal work!
 
 ## Checkpoint
 Find our checkpoint write-up [here](checkpoint.md).
