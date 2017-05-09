@@ -54,6 +54,14 @@ struct
       (ptr, size, CTYPES.CFLOAT)
     end
 
+  fun initIntTuple size b = 
+    let
+      val ptr1 = initwith_float(size, b)
+      val ptr2 = initwith_float(size, b)
+    in
+      (ptr1, ptr2, size, CTYPES.CINTTUOLE)
+    end
+
   fun destroy (a, _, _) = gpu_free a 
 
   fun copy (a, n, c) = (copy_gpu(a,n,c), n, c)
