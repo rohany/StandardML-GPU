@@ -104,4 +104,6 @@ struct
 
   fun toArray (s, l) = GPUArray.toIntArray(s)
 
+  fun destroy ((a,_,_),_) = GPUArray.gpu_free a
+
 end

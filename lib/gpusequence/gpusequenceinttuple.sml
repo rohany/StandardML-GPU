@@ -95,6 +95,8 @@ struct
     in
       out
     end
+
+  fun destroy (a1, a2, n) = (GPUArray.gpu_free(a1);GPUArray.gpu_free(a2))
   (*)
   fun filter p (a1, a2, n) = 
     let

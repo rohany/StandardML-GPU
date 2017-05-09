@@ -80,5 +80,6 @@ struct
     in
       (out, n, CTYPES.CINT)
     end
-
+  
+  fun destroy s = GPUArray.destroy s
 end

@@ -81,4 +81,6 @@ struct
       (out, n, CTYPES.CFLOAT)
     end
 
+  fun destroy s = GPUArray.destroy s
+
 end

@@ -59,7 +59,7 @@ struct
       val ptr1 = initwith_float(size, b)
       val ptr2 = initwith_float(size, b)
     in
-      (ptr1, ptr2, size, CTYPES.CINTTUOLE)
+      (ptr1, ptr2, size, CTYPES.CINTTUPLE)
     end
 
   fun destroy (a, _, _) = gpu_free a 
