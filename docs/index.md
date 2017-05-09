@@ -12,7 +12,7 @@ is able to express thier algorithm in terms of high level operations like `scan`
 and `reduce`, and is able beat out **all other options** aside from handwritten CUDA. 
 
 ## Example
-Sometimes, a few lines of code is worth a thousand words. Here is an example of how to 
+Sometimes, a few lines of code are worth a thousand words. Here is an example of how to 
 tell whether a sequence of parentheses ( where ( = 1 and ) = -1 ) is matched or not,
 using Standard ML, and with our GPU library. The algorithm computes a prefix sum
 across the input sequence, and then checks to make sure element at the end is a 0, and
