@@ -17,7 +17,7 @@ struct
     let
       val s1 = Seq.tabulate gen_paren size
       val (sres, str1) = Timer.run (match_paren_seq s1)
-      val _ = print("SML : " ^ str1 ^ "\n")
+      val _ = print("SML : " ^ str1 ^ ", ") 
     in
       sres
     end
@@ -54,11 +54,30 @@ struct
       val x = List.hd (CommandLine.arguments())
       val size = Option.valOf(Int.fromString x)
       val (sml_res, gpu_res) = (SML_PARENS.run_test size, GPU_PARENS.run_test size)
-      val _ = if sml_res = gpu_res then print("Test Passed\n") else print("Test Failed\n")
+      (*val _ = if sml_res = gpu_res then print("Test Passed\n") else print("Test Failed\n")*)
     in
       ()
+    end
+  
+  fun profile () = 
+    let
+      val x = ref 0
+      val step = 100000000
+    in
+      while (!x < 2100000000) do (
+        x := !x + step;
+      let
+        val (sml_res, gpu_res) = (SML_PARENS.run_test !x, GPU_PARENS.run_test !x)
+        (*val _ = if sml_res = gpu_res then print("Test Passed\n") else print("Test Failed\n")*)
+      in
+        ()
+      end
+      )
     end
 
 end
 
 val () = Main.run ()
+(* 
+val () = Main.profile ()
+*)
