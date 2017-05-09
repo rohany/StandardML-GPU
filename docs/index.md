@@ -48,6 +48,7 @@ our library offers, compare our run-time speed to that of Thrust, where a simili
 code can be written, albeit in C. 
 
 # Brandon add graphs here
+<iframe width="900" height="800" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 
 As we can see, our performance is equal to Thrust on smaller inputs, and beats out Thrust on larger 
 input sizes, which is a much more fair evaluation of our library. 
