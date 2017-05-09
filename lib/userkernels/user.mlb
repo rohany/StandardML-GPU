@@ -5,8 +5,10 @@ local
   ./kernels.sml
   ./intlambdas.sml
   ./floatlambdas.sml
+  ./inttuplelambdas.sml
 in
   structure GPUKernels
   structure GPUINTLambdas
   structure GPUFLOATLambdas
+  structure GPUINTTUPLELambdas
 end

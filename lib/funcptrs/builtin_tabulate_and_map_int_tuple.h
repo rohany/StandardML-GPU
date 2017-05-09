@@ -4,10 +4,11 @@ __device__
 int2 const1_int_tuple(int x){
   return make_int2(1,1);
 }
-__device__ tabulate_fun_int_tuple identity_int_tuple_dev = identity_int_tuple;
+__device__ tabulate_fun_int_tuple const1_int_tuple_dev = const1_int_tuple;
 
-__device__
-int2 identity_int_tuple(int x){
-  return make_int2(1,1);
+extern "C"
+void* gen_const1_int_tuple(){
+  tabulate_fun_int_tuple local;
+  cudaMemcpyFromSymbol(&local, const1_int_tuple_dev, sizeof(tabulate_fun_int_tuple));
+  return (void*)local;
 }
-__device__ tabulate_fun_int_tuple identity_int_tuple_dev = identity_int_tuple;
