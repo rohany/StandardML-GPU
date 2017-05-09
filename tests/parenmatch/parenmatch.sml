@@ -58,7 +58,7 @@ struct
     in
       ()
     end
-  
+  (*)
   fun profile () = 
     let
       val x = ref 0
@@ -74,7 +74,7 @@ struct
       end
       )
     end
-
+  *)
 end
 
 val () = Main.run ()
