@@ -15,6 +15,7 @@ struct generator{
 
 int main(int argc, char** argv){
 
+  //If there are no arguments given run a performace test of thrust 
   if (atoi(argv[0]) == 0) {
     for(int size = 100000000; size <  2100000000; size += 100000000)
     {
@@ -35,6 +36,8 @@ int main(int argc, char** argv){
       printf("%d,%.6f\n", size, time / 5.0);
     }   
   }
+
+  //If there is a size given then run parenmatch on that size
   if (atoi(argv[0]) > 0)  {
     int size = atoi(argv[1]);
   
