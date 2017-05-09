@@ -1,5 +1,5 @@
 MLTONFLAGS = -default-ann 'allowFFI true' -link-opt \
-						 '-rdynamic -L/usr/local/cuda-8.0/lib64/ -lcudart -lstdc++'
+						 '-rdynamic -L/usr/local/depot/cuda-8.0/lib64/ -lcudart -lstdc++'
 LIBPATH = ../../lib/
 
 test : test.sml $(LIBPATH)/gpublob.o
