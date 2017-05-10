@@ -94,9 +94,25 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 4. Work around the structure of parallel function programs to allow for more efficient use of hardware.
 
 ## Abstraction
-Thruout our library users do not have be familiar with any interface to the GPU. By extending the StandardML Libraries through the foriegn function interface, users are able to exploit the builtin function lambdas and SML GPU sequence functions in order to accelerate their workload. In the case that a user is familiar with CUDA or would like to bring an exper in to optimize an important calculation, we provide a structure in # Structure for things here
-that enables end users to extend our library with task specific kernels. Such a kernel is illustrated under the mandlebrat set gaining a # amount of speedup
-speedup.
+Throughout our library users do not have be familiar with any interface to the GPU. By extending the Standard ML library
+through the Foreign Function Interface, users are able to exploit the builtin function lambdas and
+SML GPU sequence functions in order to accelerate their workload. In the case that a user is familiar with 
+CUDA or would like to bring an expert in to optimize an important calculation, our interface is easily extendable to 
+allow this.
+
+### GPU Arrays
+In the structure `GPUArray`, we define an abstraction for arrays that are hosted on the device. Using this interface, 
+through methods like `initInt` or `copyIntoIntArray`, a user can move between these objects and the built in
+Standard ML [`Array`](http://sml-family.org/Basis/array.html) structure to abstract away grungy manual copying, 
+as well as ensuring that device data is never accessed from the host. A more experienced user can directly
+maniupate the data that these arrays point to, and explicitly launch their own more specified kernels if needed. 
+
+### GPU Sequences
+Our GPU Sequences are built on top of these GPU Arrays and are intended to be the main point of usage for the library. 
+We support a smaller subset of the operations supported by the full 
+[15-210 `SEQUENCE` Library](http://www.cs.cmu.edu/~15210/docs/sig/sequence/SEQUENCE.html). Through limitations of 
+the Foreign Function Interface the Standard ML provides, we must restrict the types of these sequences from purely
+polymorphic to integers, floats, and integer tuples. 
 
 ## Implementation
 
