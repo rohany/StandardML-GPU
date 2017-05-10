@@ -49,18 +49,16 @@ However, this really isn't too fair of a test with just a single core!
 ### Comparing performance of SML libraries 
 
 In paralell to this project, research efforts at CMU have developed a compiler for running Standard ML in parallel 
-on multicore CPU's. The Mlton-Spoonhower compiler simillarly implements a sequence library.
-Below we also compare our implementation against this well written, parallel `SEQUENCE` implementation for that research,
-running on 72 cores, though it should be noted we had to run these tests on a different machine bacause of hardware limitations. 
+on multicore CPU's, called the Mlton-Spoonhower compiler. Below we also compare our implementation against this 
+well written, parallel `SEQUENCE` implementation for that research, running on 72 cores, though it should be noted we had to run these tests on a different machine bacause of hardware limitations. 
 
-
-Perhaps even that comparison was not fair, there is an implicit amount of overhead in StandardML that must be maintained whcih can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationaly comperable algorithem can be written independently. 
+To take the comparison even further, there is an implicit amount of overhead in StandardML that must be maintained whcih can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we finaly compare our run-time speed to that of Thrust, where a computationaly comperable algorithem can be written independently from SML and assosiated overheads. 
 
 
 <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 
-As we can see, our performance is competitive with Thrust on smaller inputs, and beats out Thrust on larger 
-input sizes, which is a much more fair evaluation of our library. 
+As we can see, our performance is competitive across the board, beating out Thrust on larger 
+input sizes, which is a more fair evaluation of our library. 
 
 Additionally, even at 72 cores, a single GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem, even computing the result more effeciently considering performance / watt.
 While there are a lot of low level optimizations that can be made, such as
