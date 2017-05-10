@@ -48,7 +48,7 @@ However, this really isn't too fair of a test against just a single core!
 
 
 ### Comparing performance of SML libraries 
-In paralell to this project, research efforts at CMU have developed a compiler for running Standard ML in parallel on multicore CPUs called the Mlton-Spoonhower compiler. Below we also compare our implementation against this well written, parallel  `SEQUENCE` implementation for that research, running on 72 cores, however note that we had to run these tests on a different machine to get to run with 72 cores.
+In paralell to this project, research efforts at CMU have developed a compiler for running Standard ML in parallel on multicore CPUs called the Mlton-Spoonhower compiler. Below we also compare our implementation against this well written, parallel  `SEQUENCE` implementation for that research, running on 72 cores. Note that we had to run these tests on a different machine to get to run with 72 cores.
 
 However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationaly comperable algorithem can be written independently. 
 
