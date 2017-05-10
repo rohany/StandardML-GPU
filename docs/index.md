@@ -55,8 +55,8 @@ However, there is an implicit amount of overhead in StandardML that must be main
 <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 > You can toggle the display of each trace by clicking on its icon in the legend
 
-As we can see, our performance is competitive with Thrust on smaller inputs, and beats out Thrust on larger 
-input sizes, which is a much more fair evaluation of our library. 
+As we can see, our performance is competitive across the board, beating out Thrust on larger 
+input sizes, which is a more fair evaluation of our library given the overhead in interfacing with StandardML. 
 
 Additionally, even at 72 cores, a single GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem.
 While there are a lot of low level optimizations that can be made, such as
