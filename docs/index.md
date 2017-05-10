@@ -306,7 +306,7 @@ Our library enables never before seen performance in SML and brings a new level 
 
 ## Work Distribution
 
-Rohan worked with the StandardML forigen function interface to allow the interopability between CUDA and SML building the framework from the ground up. After numerous issues with cross file linking he established the rigid library structure for where the elements of the library needed to go to enable compilation. Brandon worked on extending the interface to provide usability such as with tuple types and validation for the existing sequence implementations. Brandon also made all of the cool interactive graphs and is working on providing a consice documentation to enable new users to effectivly deploy our library. His goal is to have a set of mature SML examples implemented in StandardML-GPU to show the usefullness and performance across a variety of samples.
+Rohan worked with the StandardML foreign function interface to allow the interoperability between CUDA and SML building the framework from the ground up. After numerous issues with cross file linking he established the rigid library structure for where the elements of the library needed to go to enable compilation. Brandon worked on extending the interface to provide usability such as with tuple types and validation for the existing sequence implementations. Brandon also made all of the cool interactive graphs and is working on providing a concise documentation to enable new users to effectively deploy our library. His goal is to have a set of mature SML examples implemented in StandardML-GPU to show the usefulness and performance across a variety of samples.
 
 ## Checkpoint
 Find our checkpoint write-up [here](checkpoint.md).
