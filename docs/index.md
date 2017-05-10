@@ -67,13 +67,13 @@ performance given ease of use, our library is the clear choice.
 ## Background
 Functional programming naturally describes transformations of data in a declarative manner.
 Since functional languages are extremely easy for programmers to express algorithmic ideas in, 
-we hope that thier code can run fast and efficiently without having to translate 
-thier code into another language Additionally, they should be able to use the same functional 
-programming methodology and see good performance without drastic changes to thier own code in 
+we hope that their code can run fast and efficiently without having to translate 
+their code into another language. Additionally, they should be able to use the same functional 
+programming methodology and see good performance without drastic changes to their own code in 
 Standard ML. 
 
 Functional programs expressed with [`SEQUENCE`](http://www.cs.cmu.edu/~15210/docs/sig/sequence/SEQUENCE.html) 
-primitives allow for powerful abstractions for algorithm design, and leaves the dirty work of 
+primitives allows for powerful abstractions for algorithm design, and leaves the dirty work of 
 efficiently implementing these primitives up to the implementer of the library. Primitives like
 `scan`, `reduce`, `filter`, etc. are extremely data parallel, and map well to the GPU platform. 
 However, there previously was no way that functional programmers could use these ideas from a functional
