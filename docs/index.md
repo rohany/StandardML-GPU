@@ -166,7 +166,7 @@ This instrisic leads us nicely to a reduce implementation. Our algorithm does th
 
 This reduction algorithm performs extremely well, as we can see here : 
 
-# brandon insert reduce graph here
+<iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/5.embed"></iframe>
 
 The key to this performance is the `__shfl_down` intrinsic. We are able to perform a warp-local 
 reduction in basically 5 steps, as opposed to large amounts of reading and writing into shared memory. 
@@ -203,9 +203,47 @@ Filter is a standard implementation, using a prefix sum and a mapping operation 
 which elements to keep, and where those elements should go in the output sequence. Due to
 good performance out of our previous primitives, filter performs well as well. 
 
-# insert filter graph here
+<iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/7.embed"></iframe>
 
 ### Arbitrary Functions
+
+A key part of our goals with this project was to make sure that users could provide **arbitrary** 
+functions to our sequence library, and not be constrained to builtin functions that came 
+with the library. We hoped to be able to let users write inline lambdas in Standard ML
+for our sequence functions. However, all the CUDA code needs to be pre-compiled seperately, 
+which means that we have to make our users write their functions in C (sad reacts only). Additionally,
+we ran into errors getting CUDA cross file linking to work, so we had to have a very rigid structure
+for these higher order functions. We represent these higher order functions as just function pointers, 
+and the values that the Standard ML code references are just pointer types. Additionally,
+function pointers are not that elegantly supported by CUDA. To just create a usable device function pointer,
+one must go through the arduous task of writing code that looks like this : 
+~~~~c
+__device__
+int my_func(int i){
+  return 1;
+}
+tabulate_fun_int my_func_dev = my_func;
+void* gen_my_func(){
+  tabulate_fun_int local;
+  cudaMemcpyFromSymbol(&local, my_func_dev, sizeof(tabulate_fun_int));
+  return (void*) local;
+}
+~~~~
+However, our goal for the library was for that a user without much CUDA knowledge to be able to easily
+write their own effective code. So, we created a script to automate this process. A user must create a file
+within which they have the function they want to write. Then they just invoke the `function_gen.py` script
+in the lib directory and all the CUDA code as well as Standard ML linking is generated! For example 
+~~~~
+./function_gen.py tabulate_fun_int <infile> funcptrs/user_tabulate_int.h
+~~~~
+would read in the function inside \<infile\>, and generate the code for it inside the header file
+funcptrs/user_tabulate_int.h, as well as adding it to the lambdas structure which holds all
+of the int sequence higher order functions. 
+
+A tradeoff we experienced with function pointers was that they are quite slow! We saw a noticeable
+performance increase when we replaced all function pointer calls to additions. However, the 
+flexibility of the library was much more worth it than the performance that hard coding additions 
+gave us. 
 
 ### Types and Tuples
 
