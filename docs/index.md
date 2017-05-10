@@ -154,6 +154,10 @@ int j = __shfl_down(i, 2, 8);
 ~~~~~
 ![warp image](https://devblogs.nvidia.com/parallelforall/wp-content/uploads/2014/02/shfl_down.png)
 
+We implement a warp-local reduction by shifting down and combining results by a power of 2
+each iteration. At the first level, everything is shifted down 1 row, then 2, then 4 and so on.
+On the last iteration, the final reduced value for that warp is held by the "thread" at warp index 0. 
+
 This instrisic leads us nicely to a reduce implementation. Our algorithm does the following : 
 1. First, we allocate an array for partial results whose size is equal to the number of blocks we split our input into.
 2. For each block, we have each warp compute a warp-local reduction, and store this in a shared array.
