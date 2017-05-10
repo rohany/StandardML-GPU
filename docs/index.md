@@ -279,7 +279,7 @@ Below we have an example of our fusing in action. Our example code will call a s
 a reduce on the mapped data. Notice how increasing the number of maps before reduction causes more
 and more overhead for thrust and Standard ML, but the time taken by our library stays relatively constant. 
 
-# graph here
+<iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/9.embed"></iframe>
 
 We implemented fusing by adjusting how sequences were represented for the structure
 `FusedINTGPUSequence`. Now, these structures also carried around a list of functions
