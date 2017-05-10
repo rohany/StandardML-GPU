@@ -9,7 +9,7 @@ C/CUDA memory management and transfer, and a series of
 implementations, which will be discussed in the report. Our library acts as a 
 domain specific language within Standard ML, where a user
 is able to express thier algorithm in terms of high level operations like `scan`, `tabulate`, 
-and `reduce`, and is able beat out **all other options** aside from handwritten CUDA. 
+and `reduce`, and is able to beat out **all other options** aside from handwritten CUDA. 
 
 ## Introduction
 Sometimes, a few lines of code are worth a thousand words. Here is an example of how to 
