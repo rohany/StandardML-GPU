@@ -120,19 +120,20 @@ interface that the module provides. The key difficulty in this portion of the de
 figuring out the intricacies of the Standard ML Foreign Function Interface, and making sure the 
 Standard ML actually interfaced with CUDA without errors. 
 
-### Primitives
+### Sequence Primitives
 
-#### Map, Tabulate and Zip
-`map`, `tabulate`, and `zip` are all extremely data parallel operations, and their GPU implementations
-were as expected. The key insight that we made for these operations, as well as the rest of the 
-primitives was the lack of necessity to maintain persistence of data throughout execution. Most
+#### Performance Assumptions
+The key insight that we made for these sequence operations, as well as the rest of the 
+primitives, was the lack of necessity to maintain persistence of data throughout execution. Most
 of the time, a user does not need to make a new copy of a 1 billion element array every time
 it is modified, which must be done in a purely functional runtime. So instead, we decided to 
-have our library be the opposite : we will always perform mutation directly on the sequence given
-to avoid unecessary copying. If a user does not want their data dirctly modified, then they can 
-use our interface to make a copy of thier data. To attain good performance, we sadly must
-do away with persistence, since a large portion of these primitives are bandwidth bound. 
-Any additional memory operations will just slow the performance down even more. 
+relax this contraint when it would interfere with perfomance significantly. Thus we perform 
+mutation directly on the sequence given to avoid unecessary copying. If a user does not want their data dirctly modified, then they can use our interface to make a copy of thier data. To attain good performance, we sadly must
+do away with persistence often, since a large portion of these primitives are bandwidth bound. 
+Any additional memory operations will just slow the performance down even more.
+
+#### Map, Tabulate, and Zip
+`map`, `tabulate`, and `zip` are all extremely data parallel operations, and  as expecte their GPU implementations benifited from this.  
 
 #### Reduce
 Our efficient implementation of reduce was inspired by this 
@@ -153,15 +154,13 @@ each iteration. At the first level, everything is shifted down 1 row, then 2, th
 On the last iteration, the final reduced value for that warp is held by the "thread" at warp index 0. 
 
 This instrisic leads us nicely to a reduce implementation. Our algorithm does the following : 
-1. First, we allocate an array for partial results whose size is equal to the number of blocks we split our input into.
+1. Allocate an array for partial results whose size is equal to the number of blocks we split our input into.
 2. For each block, we have each warp compute a warp-local reduction, and store this in a shared array.
 3. Then we have the first warp do another warp-local reduction over each warp's stored results. 
 4. Lastly, we launch 1 more kernel, to do the same procedure on each block's partial reduction. 
 
-This reduction algorithm performs extremely well, as we can see here : 
-
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/5.embed"></iframe>
-
+> This reduction performs extremely well beating out thrust by a constant multiple
 The key to this performance is the `__shfl_down` intrinsic. We are able to perform a warp-local 
 reduction in basically 5 steps, as opposed to large amounts of reading and writing into shared memory. 
 
