@@ -11,7 +11,7 @@ domain specific language within Standard ML, where a user
 is able to express thier algorithm in terms of high level operations like `scan`, `tabulate`, 
 and `reduce`, and is able beat out **all other options** aside from handwritten CUDA. 
 
-## Example
+## Introduction
 Sometimes, a few lines of code are worth a thousand words. Here is an example of how to 
 tell whether a sequence of parentheses ( where ( = 1 and ) = -1 ) is matched or not,
 using Standard ML, and with our GPU library. The algorithm computes a prefix sum
@@ -53,7 +53,7 @@ our implementation fare against a well written, parallel `SEQUENCE` implementati
 running on 72 cores? (These results should be taken with a grain of salt, as we had to run these tests
 on a different machine than the one other tests were run on). 
 
-# Comparing performance of SML libraries 
+### Comparing performance of SML libraries 
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 
 As we can see, our performance is equal to Thrust on smaller inputs, and beats out Thrust on larger 
@@ -99,8 +99,26 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 ### Types and Tuples
 
 ### Fusing
-An advantage to functional programing is a lazy evaluation of computation such that computation is done only when nessisary and performed all at once. 
-Our library supports a powerfull feature that allows the user to fuse multiple sequence oppterations into a single kernel launch decreasing the overhead and dramatically improving performance. Below we have an example of our map kernel competing with a trust implementation of map. Note that the larger the number of fused opperations the less overhead is incured and the better the performance.
+
+Classically, programs that exhibit behavior like the following are usually bandwidth bound, and 
+require manual fusing by the user.
+
+~~~~ocaml
+val s1 = Seq.map (fn x => 2 * x) S
+val s2 = Seq.map (fn x => x + 1) s1
+~~~~~
+
+This code could have both maps turned into just 1 map, so that data is accessed only once. However,
+our library supports a powerful feature that allows the user to fuse multiple sequence operations into a 
+single kernel launch decreasing the overhead and dramatically improving performance. All mapping operations
+are evaluated lazily, only applied when the `force()` function is called, or when a primitive that needs the 
+mapped values, like `scan` or `reduce` is called. 
+
+Below we have an example of our fusing in action. Our example code will call a series of maps, and then
+a reduce on the mapped data. Notice how increasing the number of maps before reduction causes more
+and more overhead for thrust and Standard ML, but the time taken by our library stays relatively constant. 
+
+# graph here
 
 ## Performance and Analysis 
 
