@@ -5,16 +5,16 @@ We developed StandardML-GPU, a Standard ML library and extension that allows a u
 interface with CUDA, and allow Standard ML to take advantage of the computing power of the GPU. 
 Our library provides an interface between raw CUDA code and Standard ML, an abstraction from
 C/CUDA memory management and transfer, and a series of 
-[`SEQUENCE`](http://www.cs.cmu.edu/~15210/docs/sig/sequence/SEQUENCE.html) data structre
+[`SEQUENCE`](http://www.cs.cmu.edu/~15210/docs/sig/sequence/SEQUENCE.html) data structure
 implementations, which will be discussed in the report. Our library acts as a 
 domain specific language within Standard ML, where a user
-is able to express thier algorithm in terms of high level operations like `scan`, `tabulate`, 
+is able to express their algorithm in terms of high level operations like `scan`, `tabulate`, 
 and `reduce`, and is able to beat out **all other options** aside from handwritten CUDA. 
 
 ## Introduction
 Sometimes, a few lines of code are worth a thousand words. Below we compare two 
-implementations of parenthesis matching, First using StandardML, and then with
-our StandardML-GPU library. The algorithems determine whether a sequence of 
+implementations of parenthesis matching, first using StandardML, and then with
+our StandardML-GPU library. The algorithms determine whether a sequence of 
 parentheses ( where ( = 1 and ) = -1 ) is matched or not by computing a prefix sum
 across the input sequence, checking to make sure element at the end is zero, and
 the sum never drops below zero along the prefix sum. 
@@ -48,40 +48,40 @@ However, this really isn't too fair of a test against just a single core!
 
 
 ### Comparing performance of SML libraries 
-In paralell to this project, research efforts at CMU have developed a compiler for running Standard ML in parallel on multicore CPUs called the Mlton-Spoonhower compiler. Below we also compare our implementation against this well written, parallel  `SEQUENCE` implementation for that research, running on 72 cores. Note that we had to run these tests on a different machine to get to run with 72 cores.
+In parallel to this project, research efforts at CMU have developed a compiler for running Standard ML in parallel on multicore CPUs called the Mlton-Spoonhower compiler. Below we also compare our implementation against this well written, parallel `SEQUENCE` implementation for that research, running on 72 cores. Note that we had to run these tests on a different machine to get to run with 72 cores.
 
-However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationaly comperable algorithem can be written independently. 
+However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationally comparable algorithm can be written independently. 
 
 <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 > You can toggle the display of each trace by clicking on its icon in the legend
 
 As we can see, our performance is competitive across the board, beating out Thrust on larger 
-input sizes, which is a more fair evaluation of our library given the overhead in interfacing with StandardML. 
+input sizes, which is a fairer evaluation of our library given the overhead in interfacing with StandardML. 
 
 Additionally, even at 72 cores, a single GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem.
 While there are a lot of low level optimizations that can be made, such as
 of writing sections of the primitives in raw CUDA, or compressing data to use less memory, in terms of 
-performance given ease of use, our library is the clear choice. 
+performance given ease of use, our library is the obvious choice. 
 
 ## Background
 Functional programming naturally describes transformations of data in a declarative manner.
 Since functional languages are extremely easy for programmers to express algorithmic ideas in, 
 we hope that their code can run fast and efficiently without having to translate 
 their code into another language. Additionally, they should be able to use the same functional 
-programming methodology and see good performance without drastic changes to their own code in 
+programming methodology and see superior performance without drastic changes to their own code in 
 Standard ML. 
 
 Functional programs expressed with [`SEQUENCE`](http://www.cs.cmu.edu/~15210/docs/sig/sequence/SEQUENCE.html) 
-primitives allows for powerful abstractions for algorithm design, and leaves the dirty work of 
+primitives allow for powerful abstractions for algorithm design, and leaves the dirty work of 
 efficiently implementing these primitives up to the implementer of the library. Primitives like
 `scan`, `reduce`, `filter`, etc. are extremely data parallel, and map well to the GPU platform. 
 However, there previously was no way that functional programmers could use these ideas from a functional
 setting, having to resort to using libraries like [Thrust](http://docs.nvidia.com/cuda/thrust/#axzz4gcJAv4tP) in 
 C to get the same kind of abstraction. 
 
-Allowing for an interface between Standard ML and the GPU has a number of difficulties, which 
+Allowing for an interface between Standard ML and the GPU has several difficulties, which 
 relate to the restricted nature of GPU computation, in contrast to the lack of restrictions in 
-terms of memory management and syntactic constructs of Standard ML. To be specific the difficulties lie in : 
+terms of memory management and syntactic constructs of Standard ML. To be specific the difficulties lie in: 
 1. Providing an intuitive abstraction for memory management for device memory, since Standard ML does not have manual memory management.
 2. Providing a flexible interface (as much polymorphism and higher order functions as possible) that allows users to write mostly SML, and more functional style programs.
 3. Implementing very efficient primitives that allow for arbitrary user-defined functions.
@@ -89,7 +89,7 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 
 ## Abstraction
 Throughout our library users do not have be familiar with any interface to the GPU. By extending the Standard ML library
-through the Foreign Function Interface, users are able to exploit the builtin function lambdas and
+through the Foreign Function Interface, users are able to exploit the built-in function lambdas and
 SML GPU sequence functions in order to accelerate their workload. In the case that a user is familiar with 
 CUDA or would like to bring an expert in to optimize an important calculation, our interface is easily extendable to 
 allow this.
@@ -99,7 +99,7 @@ In the structure `GPUArray`, we define an abstraction for arrays that are hosted
 through methods like `initInt` or `copyIntoIntArray`, a user can move between these objects and the built in
 Standard ML [`Array`](http://sml-family.org/Basis/array.html) structure to abstract away grungy manual copying, 
 as well as ensuring that device data is never accessed from the host. A more experienced user can directly
-maniupate the data that these arrays point to, and explicitly launch their own more specified kernels if needed. 
+manipulate the data that these arrays point to, and explicitly launch their own more specified kernels if needed. 
 
 ### GPU Sequences
 Our GPU Sequences are built on top of these GPU Arrays and are intended to be the main point of usage for the library. 
@@ -118,7 +118,7 @@ Standard ML side. We used the type and module system to make memory management f
 using a standard module, where the only ways to create and manipulate objects is through the 
 interface that the module provides. The key difficulty in this portion of the development was
 figuring out the intricacies of the Standard ML Foreign Function Interface, and making sure the 
-Standard ML actually interfaced with CUDA without errors. 
+Standard ML interfaced with CUDA without errors. 
 
 ### Sequence Primitives
 
@@ -127,13 +127,13 @@ The key insight that we made for these sequence operations, as well as the rest 
 primitives, was the lack of necessity to maintain persistence of data throughout execution. Most
 of the time, a user does not need to make a new copy of a 1 billion element array every time
 it is modified, which must be done in a purely functional runtime. So instead, we decided to 
-relax this contraint when it would interfere with perfomance significantly. Thus we perform 
-mutation directly on the sequence given to avoid unecessary copying. If a user does not want their data dirctly modified, then they can use our interface to make a copy of thier data. To attain good performance, we sadly must
+relax this constraint when it would interfere with performance significantly. Thus, we perform 
+mutation directly on the sequence given to avoid unnecessary copying. If a user does not want their data directly modified, then they can use our interface to make a copy of their data. To attain good performance, we sadly must
 do away with persistence often, since a large portion of these primitives are bandwidth bound. 
 Any additional memory operations will just slow the performance down even more.
 
 #### Map, Tabulate, and Zip
-`map`, `tabulate`, and `zip` are all extremely data parallel operations, and  as expecte their GPU implementations benifited from this.  
+`map`, `tabulate`, and `zip` are all extremely data parallel operations, and as expected their GPU implementations benefited from this.  
 
 #### Reduce
 Our efficient implementation of reduce was inspired by this 
@@ -153,7 +153,7 @@ We implement a warp-local reduction by shifting down and combining results by a 
 each iteration. At the first level, everything is shifted down 1 row, then 2, then 4 and so on.
 On the last iteration, the final reduced value for that warp is held by the "thread" at warp index 0. 
 
-This instrisic leads us nicely to a reduce implementation. Our algorithm does the following : 
+This intrinsic leads us nicely to a reduce implementation. Our algorithm does the following: 
 1. Allocate an array for partial results whose size is equal to the number of blocks we split our input into.
 2. For each block, we have each warp compute a warp-local reduction, and store this in a shared array.
 3. Then we have the first warp do another warp-local reduction over each warp's stored results. 
@@ -202,14 +202,14 @@ good performance of previous primitives, filter performs excellent as well.
 ### Arbitrary Functions
 
 A key part of this project was to make sure that users could provide **arbitrary** 
-functions to our sequence library, and not be constrained to builtin functions that came 
+functions to our sequence library, and not be constrained to built-in functions that came 
 with the library. We hoped to be able to let users write inline lambdas in Standard ML
-for our sequence functions. However, all the CUDA code needs to be pre-compiled seperately, 
+for our sequence functions. However, all the CUDA code needs to be pre-compiled separately, 
 which means that users must write their functions in C (sad reacts only). Additionally,
 we ran into errors getting CUDA cross file linking to work, so we have a very rigid structure
 for these higher order functions. 
-Internaly we represent these higher order functions as function pointers, 
-and the values that the Standard ML code references are just pointer types. Unfortunatly,
+Internally we represent these higher order functions as function pointers, 
+and the values that the Standard ML code references are just pointer types. Unfortunately,
 function pointers are not elegantly supported by CUDA. Thus, just to create a usable device function pointer,
 one must go through the arduous task of writing code that looks like this: 
 ~~~~c
@@ -296,7 +296,7 @@ setting, where we can represent sequences with functions, and delay computation 
 While our primitives beat Thrust, there are better libraries to compare implementations against, 
 such as CUB. Additionally, we can see that while our performance on primitives was better, in a 
 program that used a group of primitives in conjunction with each other, we werent able to beat
-Thrust quite as handily, which means that we can definately work to pipeline and group operations
+Thrust quite as handily, which means that we can definitely work to pipeline and group operations
 together better. 
 
 ## Conclusion
@@ -310,3 +310,4 @@ Find our checkpoint write-up [here](checkpoint.md).
 
 ## Proposal
 Find our proposal write-up [here](proposal.md).
+
