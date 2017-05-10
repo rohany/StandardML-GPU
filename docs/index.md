@@ -53,7 +53,7 @@ In paralell to this project, research efforts at CMU have developed a compiler f
 However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationaly comperable algorithem can be written independently. 
 
 <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
-> You can toggle the display of each trace by clicking on it's icon in the legend
+> You can toggle the display of each trace by clicking on its icon in the legend
 
 As we can see, our performance is competitive with Thrust on smaller inputs, and beats out Thrust on larger 
 input sizes, which is a much more fair evaluation of our library. 
@@ -179,38 +179,40 @@ very much extra work. Lastly, the speedup from using `__shfl_up` as opposed to a
 upsweep and downsweep is worth the few extra addition operations. 
 
 Our algorithm for scan mirrors that of reduce : 
-1. First, we allocate an array for partial results whose size is equal to the number of blocks we split our input into.
+1. Allocate an array for partial results whose size is equal to the number of blocks we split our input into.
 2. For each block, we have each warp compute a warp-local scan, and store this in a shared array.
 3. Then we have the first warp do another warp-local scan over each warp's stored results, and write the block's partial result into an output array. 
-4. We repeat this blockwise process until we fit the entire scan out into a single block . 
+4. We repeat this blockwise process until we fit the entire scan out into a single block. 
 
 We change the algorithm slightly for an exclusive scan, where at the last step we perform a shift on the
-output array to simulate the exclusion property of the scan. 
+output array to enforce the exclusion property of the scan. 
 
-Our results for scan are very competitive with Thrust.
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/3.embed"></iframe>
-
+> Our library is very competitive with Thrust 
 
 #### Filter
 
 Filter is a standard implementation, using a prefix sum and a mapping operation to figure out
-which elements to keep, and where those elements should go in the output sequence. Due to
-good performance out of our previous primitives, filter performs well as well. 
+which elements to keep, and where those elements should go in the output sequence. Due to the
+good performance of previous primitives, filter performs excellent as well. 
 
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/7.embed"></iframe>
 
+
+
 ### Arbitrary Functions
 
-A key part of our goals with this project was to make sure that users could provide **arbitrary** 
+A key part of this project was to make sure that users could provide **arbitrary** 
 functions to our sequence library, and not be constrained to builtin functions that came 
 with the library. We hoped to be able to let users write inline lambdas in Standard ML
 for our sequence functions. However, all the CUDA code needs to be pre-compiled seperately, 
-which means that we have to make our users write their functions in C (sad reacts only). Additionally,
-we ran into errors getting CUDA cross file linking to work, so we had to have a very rigid structure
-for these higher order functions. We represent these higher order functions as just function pointers, 
-and the values that the Standard ML code references are just pointer types. Additionally,
-function pointers are not that elegantly supported by CUDA. To just create a usable device function pointer,
-one must go through the arduous task of writing code that looks like this : 
+which means that users must write their functions in C (sad reacts only). Additionally,
+we ran into errors getting CUDA cross file linking to work, so we have a very rigid structure
+for these higher order functions. 
+Internaly we represent these higher order functions as function pointers, 
+and the values that the Standard ML code references are just pointer types. Unfortunatly,
+function pointers are not elegantly supported by CUDA. Thus, just to create a usable device function pointer,
+one must go through the arduous task of writing code that looks like this: 
 ~~~~c
 __device__
 int my_func(int i){
@@ -223,8 +225,8 @@ void* gen_my_func(){
   return (void*) local;
 }
 ~~~~
-However, our goal for the library was for that a user without much CUDA knowledge to be able to easily
-write their own effective code. So, we created a script to automate this process. A user must create a file
+However, our goal for the library was that a user without much CUDA knowledge could easily
+write their own performant code. So, we created a script to automate this process. A user must create a file
 within which they have the function they want to write. Then they just invoke the `function_gen.py` script
 in the lib directory and all the CUDA code as well as Standard ML linking is generated! For example 
 ~~~~
