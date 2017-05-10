@@ -299,10 +299,12 @@ program that used a group of primitives in conjunction with each other, we weren
 Thrust quite as handily, which means that we can definitely work to pipeline and group operations
 together better. 
 
-Conclusion
+## Conclusion
 
 Our library enables never before seen performance in SML and brings a new level of deployability to SML. Our use of a GPU limits the scope of usability to those with an NVIDIA GPU in their system, but we feel that modern computers - especially those used to process datasets on billions of elements - are suitably equipped such that this is not a restriction to the end user. CPU based acceleration through MLton had already been attempted and the GPU was necessary for the next order of magnitude increase in performance. Through all of our kernels you can see that our library while interfacing with SML is able to compete and beat thrust which is an excellent benchmark for well implemented GPGPU algorithms. The translation from StandardML to StandardML-GPU is minimally complicated and expandable. As more users implement larger algorithms we can identify common closures that may benefit from new kernels allowing the library to evolve and take advantage of low-level optimizations mentioned before.
-Work Distribution
+
+
+## Work Distribution
 
 Rohan worked with the StandardML forigen function interface to allow the interopability between CUDA and SML building the framework from the ground up. After numerous issues with cross file linking he established the rigid library structure for where the elements of the library needed to go to enable compilation. Brandon worked on extending the interface to provide usability such as with tuple types and validation for the existing sequence implementations. Brandon also made all of the cool interactive graphs and is working on providing a consice documentation to enable new users to effectivly deploy our library. His goal is to have a set of mature SML examples implemented in StandardML-GPU to show the usefullness and performance across a variety of samples.
 
