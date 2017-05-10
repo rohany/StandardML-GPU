@@ -8,6 +8,6 @@ do
 	for i in `seq 1 10`;
 	do
         ./thrust $n >> thrust_perf.txt
-		./filter $n >> sml_perf.txt
+		./scan $n >> sml_perf.txt
 	done 
 done 
