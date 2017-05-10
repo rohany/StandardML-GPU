@@ -94,7 +94,9 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 4. Work around the structure of parallel function programs to allow for more efficient use of hardware.
 
 ## Abstraction
-
+Thruout our library users do not have be familiar with any interface to the GPU. By extending the StandardML Libraries through the foriegn function interface, users are able to exploit the builtin function lambdas and SML GPU sequence functions in order to accelerate their workload. In the case that a user is familiar with CUDA or would like to bring an exper in to optimize an important calculation, we provide a structure in # Structure for things here
+that enables end users to extend our library with task specific kernels. Such a kernel is illustrated under the mandlebrat set gaining a # amount of speedup
+speedup.
 
 ## Implementation
 
