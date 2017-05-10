@@ -199,12 +199,30 @@ Our results for scan are very competitive with Thrust.
 
 #### Filter
 
+Filter is a standard implementation, using a prefix sum and a mapping operation to figure out
+which elements to keep, and where those elements should go in the output sequence. Due to
+good performance out of our previous primitives, filter performs well as well. 
+
+# insert filter graph here
+
 ### Arbitrary Functions
 
 ### Types and Tuples
 
 Due to the nature of the Foreign Function Interface between Standard ML and C, the liberties
-we are allowed to take with typing
+we are allowed to take with typing in Standard ML are no longer there when we try to interface
+with C. We were able to implement a strange version of polymorphism in C by making every possible
+datatype a void\* type, but this introduced a large amount of extra work, as we would then have to 
+pass around datatype size, and what kind of data was actually being stored. Additionally, this 
+was very cumbersome from a user perspective, as the syntax was ugly and extremely unusable. For
+example, to return a value of type `int` from a function, a user would have to use 
+
+~~~~c
+return *(void**)(&retun_value);
+~~~~
+
+We decided it would be better instead to create several implementations of our sequence structures
+for different commonly used types - integer, floats, and integer tuples. 
 
 ### Fusing
 
