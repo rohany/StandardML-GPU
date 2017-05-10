@@ -64,10 +64,10 @@ of writing sections of the primitives yourself, or compressing data to use less 
 performance given ease of use, our library is the clear choice. 
 
 ## Background
-Functional programming naturally describes transformations of data in a very declarative manner.
+Functional programming naturally describes transformations of data in a declarative manner.
 Since functional languages are extremely easy for programmers to express algorithmic ideas in, 
-they should also be able to see thier code run fast and efficiently without having to translate 
-thier code into another language. Additionally, they should be able to use the same functional 
+we hope that thier code can run fast and efficiently without having to translate 
+thier code into another language Additionally, they should be able to use the same functional 
 programming methodology and see good performance without drastic changes to thier own code in 
 Standard ML. 
 
@@ -98,6 +98,8 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 ### Types and Tuples
 
 ### Fusing
+An advantage to functional programing is a lazy evaluation of computation such that computation is done only when nessisary and performed all at once. 
+Our library supports a powerfull feature that allows the user to fuse multiple sequence oppterations into a single kernel launch decreasing the overhead and dramatically improving performance. Below we have an example of our map kernel competing with a trust implementation of map. Note that the larger the number of fused opperations the less overhead is incured and the better the performance.
 
 ## Performance and Analysis 
 
