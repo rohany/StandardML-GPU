@@ -65,8 +65,8 @@ As we can see, our performance is competitive with Thrust on smaller inputs, and
 input sizes, which is a much more fair evaluation of our library. 
 
 Additionally, even at 72 cores, a single GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem.
-While alot of optimizations can be made by programmers using our library, the research code or thrust (such as
-of writing sections of the primitives yourself, or compressing data to use less memory), in terms of 
+While there are a lot of low level optimizations that can be made, such as
+of writing sections of the primitives in raw CUDA, or compressing data to use less memory, in terms of 
 performance given ease of use, our library is the clear choice. 
 
 ## Background
@@ -89,11 +89,12 @@ Allowing for an interface between Standard ML and the GPU has a number of diffic
 relate to the restricted nature of GPU computation, in contrast to the lack of restrictions in 
 terms of memory management and syntactic constructs of Standard ML. To be specific the difficulties lie in : 
 1. Providing an intuitive abstraction for memory management for device memory, since Standard ML does not have manual memory management.
-2. Providing a flexible interface (as much polymorphism, higher order functions as possible) that allows users to write mostly SML, and more functional style programs.
+2. Providing a flexible interface (as much polymorphism and higher order functions as possible) that allows users to write mostly SML, and more functional style programs.
 3. Implementing very efficient primitives that allow for arbitrary user-defined functions.
 4. Work around the structure of parallel function programs to allow for more efficient use of hardware.
 
 ## Abstraction
+
 
 ## Implementation
 
