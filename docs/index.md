@@ -98,6 +98,9 @@ terms of memory management and syntactic constructs of Standard ML. To be specif
 
 ### Types and Tuples
 
+Due to the nature of the Foreign Function Interface between Standard ML and C, the liberties
+we are allowed to take with typing
+
 ### Fusing
 
 Classically, programs that exhibit behavior like the following are usually bandwidth bound, and 
@@ -106,9 +109,12 @@ require manual fusing by the user.
 ~~~~ocaml
 val s1 = Seq.map (fn x => 2 * x) S
 val s2 = Seq.map (fn x => x + 1) s1
+val result = Seq.reduce (op * ) 1 s2
 ~~~~~
 
-This code could have both maps turned into just 1 map, so that data is accessed only once. However,
+This code could have both maps turned into just 1 map, so that data is accessed only once. In the general
+case however, it is easier for users to think about thier code when they can break up the data accesses 
+and operations on the structure. With this in mind,
 our library supports a powerful feature that allows the user to fuse multiple sequence operations into a 
 single kernel launch decreasing the overhead and dramatically improving performance. All mapping operations
 are evaluated lazily, only applied when the `force()` function is called, or when a primitive that needs the 
@@ -122,9 +128,11 @@ and more overhead for thrust and Standard ML, but the time taken by our library 
 
 ## Performance and Analysis 
 
-### Baseline Primitive Performance
-
-### Fused Primitive Performance
+While our primitives beat Thrust, there are better libraries to compare implementations against, 
+such as CUB. Additionally, we can see that while our performance on primitives was better, in a 
+program that used a group of primitives in conjunction with each other, we werent able to beat
+Thrust quite as handily, which means that we can definately work to pipeline and group operations
+together better. 
 
 ## Conclusion
 
