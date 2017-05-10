@@ -47,18 +47,19 @@ However, this really isn't too fair of a test. To get a real taste for the accel
 our library offers, compare our run-time speed to that of Thrust, where a similiar style of
 code can be written, albeit in C. 
 
+
+Lastly, research at CMU has been going on to run Standard ML in parallel on multicore CPU's. How does
+our implementation fare against a well written, parallel `SEQUENCE` implementation for that research,
+running on 72 cores? (These results should be taken with a grain of salt, as we had to run these tests
+on a different machine than the one other tests were run on). 
+
 # Comparing performance of SML libraries 
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 
 As we can see, our performance is equal to Thrust on smaller inputs, and beats out Thrust on larger 
 input sizes, which is a much more fair evaluation of our library. 
 
-Lastly, research at CMU has been going on to run Standard ML in parallel on multicore CPU's. How does
-our implementation fare against a well written, parallel `SEQUENCE` implementation for that research?
-
-# Rohan add a graph here
-
-Even at 72 cores, 1 GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem.
+Additionally, even at 72 cores, 1 GTX 1080 handily beats out parallel Standard ML on this parentheses matching problem.
 While alot of optimizations can be made by programmers using our library, the research code or thrust (such as
 of writing sections of the primitives yourself, or compressing data to use less memory), in terms of 
 performance given ease of use, our library is the clear choice. 
