@@ -173,6 +173,30 @@ reduction in basically 5 steps, as opposed to large amounts of reading and writi
 
 #### Scan
 
+Our scan implementation is also based upon the `__shfl` class of intrinsics, this time utilizing
+the `__shfl_up` intrinsic. We can compute a warp-local scan by shuffling the values up the warp,
+and combining a "thread's" current value with the value being sent up to it by the `__shfl`. 
+At a glance, this may seem like the classic work inefficient scan algorithm! We cannot lie, 
+it does follow the same pattern. However, since the data is being transferred to each "thread" in 
+the warp anyway, we are not saving any computation by only combining certain elements. Because
+each "thread" in the warp is a vector unit, they will all be executing the same instructions anyway.
+So what seems like a work-inefficient implementation is actually using the hardware well, and not doing 
+very much extra work. Lastly, the speedup from using `__shfl_up` as opposed to a shared memory
+upsweep and downsweep is worth the few extra addition operations. 
+
+Our algorithm for scan mirrors that of reduce : 
+1. First, we allocate an array for partial results whose size is equal to the number of blocks we split our input into.
+2. For each block, we have each warp compute a warp-local scan, and store this in a shared array.
+3. Then we have the first warp do another warp-local scan over each warp's stored results, and write the block's partial result into an output array. 
+4. We repeat this blockwise process until we fit the entire scan out into a single block . 
+
+We change the algorithm slightly for an exclusive scan, where at the last step we perform a shift on the
+output array to simulate the exclusion property of the scan. 
+
+Our results for scan are very competitive with Thrust.
+<iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/3.embed"></iframe>
+
+
 #### Filter
 
 ### Arbitrary Functions
