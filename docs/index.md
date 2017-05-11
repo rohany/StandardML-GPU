@@ -53,6 +53,7 @@ In parallel to this project, research efforts at CMU have developed a compiler f
 However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationally comparable algorithm can be written independently. 
 
 <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
+<iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/11.embed"></iframe>
 > You can toggle the display of each trace by clicking on its icon in the legend.
 
 As we can see, our performance is competitive across the board, beating out Thrust on larger 
