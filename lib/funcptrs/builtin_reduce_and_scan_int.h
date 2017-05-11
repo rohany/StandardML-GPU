@@ -70,3 +70,21 @@ void* gen_multiply_int(){
 	return (void*)local;
 
 }
+__device__
+int sub_int(int x, int y){
+  return x - y;
+}
+
+__device__ reduce_fun_int sub_int_dev = sub_int;
+
+extern "C"
+void* gen_sub_int(){
+
+	reduce_fun_int local;
+
+	cudaMemcpyFromSymbol(&local, sub_int_dev, sizeof(reduce_fun_int));
+
+	return (void*)local;
+
+}
+

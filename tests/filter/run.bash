@@ -3,7 +3,7 @@
 echo "" > thrust_perf.txt
 echo "" > sml_perf.txt
 
-for n in {100000000..2000000000..200000000};
+for n in {10000000..200000000..20000000};
 do
 	for i in `seq 1 10`;
 	do

@@ -63,5 +63,6 @@ struct
       a
     end
 
+  fun zipwith f (a, b) = AS.full(A.tabulate(length a, fn i => f(nth a i, nth b i)))
 
 end

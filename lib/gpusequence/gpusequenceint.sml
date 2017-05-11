@@ -74,7 +74,7 @@ struct
     end
   
   (* requires both have the same length *)
-  fun zipwith f (a1, n, _) (a2, _, _) =
+  fun zipwith f ((a1, n, _),(a2, _, _)) =
     let
       val out = zipwith_cuda(a1, a2, f, n)
     in

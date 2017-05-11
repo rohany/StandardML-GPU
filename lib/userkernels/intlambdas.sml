@@ -23,4 +23,8 @@ struct
 	val gen_multiply = _import "gen_multiply_int" public : unit -> MLton.Pointer.t;
 	val multiply = gen_multiply()
 
+
+	val gen_sub = _import "gen_sub_int" public : unit -> MLton.Pointer.t;
+	val sub = gen_sub()
+
 end
