@@ -261,7 +261,7 @@ int mapper(int x){
 
 Since this function was a function to be applied on integers, it will be placed in the `GPUINTLambdas` structure.
 ~~~~ocaml
-val mapped = GPUSeq.map GPUINTLambads.mapper S
+val mapped = GPUSeq.map GPUINTLambdas.mapper S
 ~~~~
 
 A tradeoff we experienced with function pointers was that they are quite slow! We saw a noticeable
@@ -310,6 +310,12 @@ a reduce on the mapped data. Notice how increasing the number of maps before red
 and more overhead for thrust and Standard ML, but the time taken by our library stays relatively constant. 
 
 <iframe width="640" height="540" frameborder="0" scrolling="no" src="https://plot.ly/~bhoughton/9.embed"></iframe>
+
+In a less contrived setting, this fusing ability is extremely useful for just
+allowing programmers to write transformations on data without having to worry about
+performance issues of those transformations. Being able to fuse even
+one mapping operation into a reduction can shave a constant off the overall
+runtime of the program. 
 
 We implemented fusing by adjusting how sequences were represented for the structure
 `FusedINTGPUSequence`. Now, these structures also carry around a list of functions
