@@ -52,25 +52,9 @@ In parallel to this project, research efforts at CMU have developed a compiler f
 
 However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationally comparable algorithm can be written independently. 
 
- <div class="tab">
-  <button class="tablinks" onclick="openCity(event, 'London')">London</button>
-  <button class="tablinks" onclick="openCity(event, 'Paris')">Paris</button>
-</div>
-
-<div id="London" class="tabcontent">
-  <h3>London</h3>
-  <p>London is the capital city of England.</p>
-  <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
-</div>
-
-<div id="Paris" class="tabcontent">
-  <h3>Paris</h3>
-  <p>Paris is the capital of France.</p>
-  <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/11.embed"></iframe>
-</div>
 
 
-
+ <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
 > You can toggle the display of each trace by clicking on its icon in the legend.
 
 As we can see, our performance is competitive across the board, beating out Thrust on larger 
@@ -81,7 +65,7 @@ While there are a lot of low level optimizations that can be made, such as
 writing sections of the primitives in raw CUDA, or compressing data to use less memory, in terms of 
 performance given ease of use, our library is the obvious choice. 
 
-Additionally, we can use our sequence library to solve a more robust problem : the Maximum Contiguous Subsequence Sum
+We can use our sequence library to solve a more robust problem : the Maximum Contiguous Subsequence Sum
 problem. This problem is defined as the following : given a sequence of integers, find the maximum sum out of all
 possible subsequences of the input sequence. We will solve this problem again using a serial sequence library and 
 our library. You can find the details of the algorithm [here](https://drive.google.com/file/d/0B4z2gzEmkDDCWHJYb3lrY2Z1VjQ/view). 
@@ -112,7 +96,8 @@ fun mcss S =
   end
 ~~~~
 
-Again, we see with little changes to our code, we can accelerate this problem on the GPU. 
+Again, we see with little changes to our code, we can accelerate this problem on the GPU with competitive performace to thrust.
+<iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/11.embed"></iframe>
 
 ## Background
 Functional programming naturally describes transformations of data in a declarative manner.
