@@ -63,6 +63,39 @@ While there are a lot of low level optimizations that can be made, such as
 writing sections of the primitives in raw CUDA, or compressing data to use less memory, in terms of 
 performance given ease of use, our library is the obvious choice. 
 
+Additionally, we can use our sequence library to solve a more robust problem : the Maximum Contiguous Subsequence Sum
+problem. This problem is defined as the following : given a sequence of integers, find the maximum sum out of all
+possible subsequences of the input sequence. We will solve this problem again using a serial sequence library and 
+our library. You can find the details of the algorithm [here](https://drive.google.com/file/d/0B4z2gzEmkDDCWHJYb3lrY2Z1VjQ/view). 
+
+Here is the Standard ML algorithm : 
+~~~~ocaml
+fun mcss S = 
+  let
+    val sums = Seq.scanIncl (op +) 0 S
+    val (mins, _) = Seq.scan Int.min int_max sums
+    val gains = Seq.zipwith (op -) (sums, mins)
+  in
+    Seq.reduce Int.max int_min gains
+  end
+~~~~
+
+And here is the version using our library : 
+
+~~~~ocaml
+fun mcss S = 
+  let
+    val sums = GPUSeq.scanIncl Lambdas.add 0 S
+    val m_sums = GPUSeq.makeCopy sums
+    val (mins, _) = GPUSeq.scan Lambdas.min int_max m_sums
+    val gains = GPUSeq.zipwith Lambdas.sub (sums, mins)
+  in
+    GPUSeq.reduce Lambdas.max int_min gains
+  end
+~~~~
+
+Again, we see with little changes to our code, we can accelerate this problem on the GPU. 
+
 ## Background
 Functional programming naturally describes transformations of data in a declarative manner.
 Since functional languages are extremely easy for programmers to express algorithmic ideas in, 
