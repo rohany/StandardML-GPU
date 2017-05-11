@@ -47,6 +47,8 @@ struct
 
   fun toArraySequence s = ArraySlice.full(toIntArray s)
 
+  val fromArray = GPUArray.fromIntArray
+
   fun reduce f b (a, n, _) = reduce_cuda(a, n, b, f)
 
   fun scan f b (a, n, _) = 
