@@ -52,8 +52,25 @@ In parallel to this project, research efforts at CMU have developed a compiler f
 
 However, there is an implicit amount of overhead in StandardML that must be maintained which can introduce overhead with large computations. To get a real taste for the acceleration that our library offers, we now compare our run-time speed to that of Thrust, where a computationally comparable algorithm can be written independently. 
 
-<iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
-<iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/11.embed"></iframe>
+ <div class="tab">
+  <button class="tablinks" onclick="openCity(event, 'London')">London</button>
+  <button class="tablinks" onclick="openCity(event, 'Paris')">Paris</button>
+</div>
+
+<div id="London" class="tabcontent">
+  <h3>London</h3>
+  <p>London is the capital city of England.</p>
+  <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/1.embed"></iframe>
+</div>
+
+<div id="Paris" class="tabcontent">
+  <h3>Paris</h3>
+  <p>Paris is the capital of France.</p>
+  <iframe width="640" height="540" frameborder="1" scrolling="no" src="https://plot.ly/~bhoughton/11.embed"></iframe>
+</div>
+
+
+
 > You can toggle the display of each trace by clicking on its icon in the legend.
 
 As we can see, our performance is competitive across the board, beating out Thrust on larger 
