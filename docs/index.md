@@ -211,7 +211,14 @@ for these higher order functions.
 Internally we represent these higher order functions as function pointers, 
 and the values that the Standard ML code references are just pointer types. Unfortunately,
 function pointers are not elegantly supported by CUDA. Thus, just to create a usable device function pointer,
-one must go through the arduous task of writing code that looks like this: 
+we must convert a function like this
+~~~~c
+int my_func(int i){
+  return 1;
+}
+~~~~
+to a large chunk of CUDA annotated code like this, as well as import this function 
+into Standard ML.
 ~~~~c
 __device__
 int my_func(int i){
@@ -234,6 +241,28 @@ in the lib directory and all the CUDA code as well as Standard ML linking is gen
 would read in the function inside \<infile\>, and generate the code for it inside the header file
 funcptrs/user_tabulate_int.h, as well as adding it to the lambdas structure which holds all
 of the int sequence higher order functions. 
+
+To handle the interfacing with these higher order functions, we do the loading and importing
+in structures like `GPUINTLambdas` or `GPUFLOATLambdas`. The user can then reference the functions 
+they import as values inside these structures.
+
+To give an example of the full process, say the user wanted to create a function to double and increment everything
+in a sequence they have. The procedure would be as follows : 
+
+1. Create a file holding the following function
+
+~~~~c
+int mapper(int x){
+  return 2*x + 1;
+}
+~~~~
+
+2. Run the function generator script above. We use the arguments map_fun_int and the outfile funcptrs/user_map_int.h.
+
+Since this function was a function to be applied on integers, it will be placed in the `GPUINTLambdas` structure.
+~~~~ocaml
+val mapped = GPUSeq.map GPUINTLambads.mapper S
+~~~~
 
 A tradeoff we experienced with function pointers was that they are quite slow! We saw a noticeable
 performance increase when we replaced all function pointer calls to additions. However, the 
