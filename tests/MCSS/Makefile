@@ -3,7 +3,7 @@ MLTONFLAGS = -default-ann 'allowFFI true' -link-opt \
 LIBPATH = ../../lib/
 BLOB = $(LIBPATH)/gpublob.o
 
-all : mcss
+all : mcss thrust
 
 mcss : mcss.sml $(BLOB)
 	mlton $(MLTONFLAGS) mcss.mlb ../../lib/gpublob.o

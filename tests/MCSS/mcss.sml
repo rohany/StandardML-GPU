@@ -59,8 +59,8 @@ struct
       val (r1, str) = Timer.run (fn () => CPU_MCSS.mcss s)
       val _ = print("SML : " ^ str ^ "\n")
       val (r2, str) = Timer.run (fn () => GPU_MCSS.mcss gs)
-      val _ = print("SML : " ^ str ^ "\n")
-      val _ = if r1 = r2 then print("Success\n") else print("Failed\n")
+      val _ = print("SML GPU : " ^ str ^ "\n")
+      (*val _ = if r1 = r2 then print("Success\n") else print("Failed\n")*)
     in
       ()
     end 
