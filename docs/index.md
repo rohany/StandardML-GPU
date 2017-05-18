@@ -1,5 +1,6 @@
 # Final Writeup
-
+## Results
+We won fifth overall!
 ## Overview
 We developed StandardML-GPU, a Standard ML library and extension that allows a user to 
 interface with CUDA, and allows Standard ML to take advantage of the computing power of the GPU. 
