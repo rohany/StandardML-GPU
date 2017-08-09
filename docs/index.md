@@ -77,7 +77,7 @@ Here is the Standard ML algorithm :
 fun mcss S = 
   let
     val sums = Seq.scanIncl (op +) 0 S
-    val (mins, _) = Seq.scan Int.min int_max sums
+    val (mins, _) = Seq.scan Int.min 0 sums
     val gains = Seq.zipwith (op -) (sums, mins)
   in
     Seq.reduce Int.max int_min gains
